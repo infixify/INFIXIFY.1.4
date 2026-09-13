@@ -1,0 +1,1892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>JEE & Boards Elite Mobile Workspace</title>
+<style>
+  :root{
+    --bg:#f8fafd;
+    --surface:#ffffff;
+    --board:#146c2e;
+    --board-bg:#e6f4ea;
+    --jee:#0b57d0;
+    --jee-bg:#e8f0fe;
+    --red:#c5221f;
+    --yellow:#f9ab00;
+    --text:#1f1f1f;
+    --text-sub:#5f6368;
+    --border:#e2e6ea;
+    --radius:16px;
+    --shadow:0 1px 2px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.06);
+  }
+  *{box-sizing:border-box; margin:0; padding:0; max-width:100%; word-wrap:break-word; overflow-wrap:break-word;}
+  html,body{width:100%; overflow-x:hidden;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:var(--bg); color:var(--text); padding-bottom:50px;
+  }
+  .container{max-width:520px; margin:0 auto; padding:0 12px;}
+
+  /* TOP NAV */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--surface); padding:14px 16px; box-shadow:var(--shadow);
+    position:sticky; top:0; z-index:50;
+  }
+  .topbar h1{font-size:1.05rem; font-weight:700; color:var(--text);}
+  .hamburger{
+    background:none; border:none; font-size:1.4rem; cursor:pointer; color:var(--text);
+    width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  }
+  .hamburger:active{background:var(--bg);}
+
+  /* DRAWER */
+  .overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:60;
+    opacity:0; pointer-events:none; transition:opacity .2s;
+  }
+  .overlay.open{opacity:1; pointer-events:auto;}
+  .drawer{
+    position:fixed; top:0; right:0; height:100%; width:78%; max-width:300px;
+    background:var(--surface); z-index:70; box-shadow:-4px 0 16px rgba(0,0,0,.15);
+    transform:translateX(100%); transition:transform .25s ease; padding:20px 14px;
+  }
+  .drawer.open{transform:translateX(0);}
+  .drawer h2{font-size:.95rem; color:var(--text-sub); margin-bottom:16px; text-transform:uppercase; letter-spacing:.5px;}
+  .drawer-link{
+    display:flex; align-items:center; gap:10px; padding:13px 12px; border-radius:12px;
+    font-size:.92rem; font-weight:600; color:var(--text); cursor:pointer; margin-bottom:4px;
+  }
+  .drawer-link:active{background:var(--bg);}
+  .drawer-link.active{background:var(--jee-bg); color:var(--jee);}
+
+  /* VIEWS */
+  .view{display:none;}
+  .view.active{display:block;}
+
+  /* CARD */
+  .card{
+    background:var(--surface); border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:16px; margin-top:14px; border:1px solid var(--border);
+  }
+  .card h3{font-size:.95rem; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:6px;}
+  .card .sub{font-size:.75rem; color:var(--text-sub); margin-top:-8px; margin-bottom:10px;}
+
+  /* CALENDAR */
+  .cal-nav{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+  .cal-nav button{
+    border:none; background:var(--bg); width:34px; height:34px; border-radius:50%;
+    font-size:1rem; cursor:pointer;
+  }
+  .cal-nav .month-label{font-weight:700; font-size:.95rem;}
+  .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:3px;}
+  .cal-dow{text-align:center; font-size:.62rem; font-weight:700; color:var(--text-sub); padding-bottom:4px;}
+  .cal-day{
+    position:relative; aspect-ratio:1/1; display:flex; align-items:center; justify-content:center;
+    border-radius:9px; font-size:.78rem; cursor:pointer; border:2px solid transparent;
+  }
+  .cal-day.empty{cursor:default;}
+  .cal-day.today{font-weight:800; color:var(--jee);}
+  .cal-day.selected{border-color:var(--jee); background:var(--jee-bg); font-weight:700;}
+  .day-dots{position:absolute; bottom:3px; display:flex; gap:2px;}
+  .day-dot{width:5px; height:5px; border-radius:50%;}
+  .dot-milestone{background:var(--red);}
+  .dot-aits{background:var(--yellow);}
+  .dot-study{background:var(--board);}
+  .legend{display:flex; gap:14px; font-size:.68rem; color:var(--text-sub); margin-top:10px; flex-wrap:wrap;}
+  .legend span{display:flex; align-items:center; gap:4px;}
+  .legend-dot{width:7px; height:7px; border-radius:50%; display:inline-block;}
+
+  /* TIMELINE */
+  .tl-date{font-size:.78rem; font-weight:700; color:var(--text-sub); margin-bottom:8px;}
+  .tl-item{display:flex; gap:10px; padding:9px 0; border-bottom:1px solid var(--border);}
+  .tl-item:last-child{border-bottom:none;}
+  .tl-time{flex:0 0 88px; font-size:.68rem; font-weight:700; color:var(--jee); line-height:1.3;}
+  .tl-item.board .tl-time{color:var(--board);}
+  .tl-body .tl-task{font-size:.83rem; font-weight:600;}
+  .warn-note{
+    margin-top:10px; padding:10px 12px; background:#fef7e0; border-left:4px solid var(--yellow);
+    border-radius:10px; font-size:.74rem; font-weight:600; color:#7a5900;
+  }
+
+  /* PROGRESS BARS */
+  .progress-item{margin-bottom:14px;}
+  .progress-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; gap:8px;}
+  .progress-name{font-size:.82rem; font-weight:700; flex:1;}
+  .tier-tag{font-size:.6rem; font-weight:700; padding:2px 7px; border-radius:6px; white-space:nowrap;}
+  .tier-green{background:#e6f4ea; color:var(--board);}
+  .tier-yellow{background:#fef7e0; color:#7a5900;}
+  .tier-hard{background:#fce8e6; color:var(--red);}
+  select.status-select{
+    font-size:.72rem; border:1px solid var(--border); border-radius:8px; padding:4px 6px;
+    background:var(--surface); color:var(--text);
+  }
+  .progress-bar-track{height:8px; background:var(--bg); border-radius:6px; overflow:hidden; margin-top:6px;}
+  .progress-bar-fill{height:100%; border-radius:6px; transition:width .3s;}
+
+  /* CHECKLIST */
+  .chk-item{display:flex; align-items:flex-start; gap:9px; padding:9px 0; border-bottom:1px solid var(--border);}
+  .chk-item:last-child{border-bottom:none;}
+  .chk-item input[type=checkbox]{margin-top:2px; width:18px; height:18px; flex-shrink:0;}
+  .chk-item label{font-size:.83rem; line-height:1.35; flex:1;}
+  .chk-item.done label{text-decoration:line-through; color:var(--text-sub);}
+  .chk-del{background:none; border:none; cursor:pointer; font-size:.85rem; flex-shrink:0;}
+
+  .add-task-row{display:flex; flex-direction:column; gap:8px; margin-top:6px; margin-bottom:4px;}
+  .add-task-row input[type=text], .add-task-row select, textarea, input[type=number]{
+    width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px;
+    font-size:.85rem; background:var(--bg); color:var(--text); font-family:inherit;
+  }
+  .add-task-row-inline{display:flex; gap:8px;}
+  .add-task-row-inline select{flex:1;}
+  .btn{
+    border:none; padding:10px 14px; border-radius:10px; font-weight:700; font-size:.82rem;
+    cursor:pointer; background:var(--jee); color:#fff;
+  }
+  .btn.board{background:var(--board);}
+  .btn.block{width:100%;}
+  .btn.ghost{background:var(--bg); color:var(--text);}
+
+  /* HISTORY / LOGS */
+  .log-feed{max-height:260px; overflow-y:auto; margin-top:4px;}
+  .log-row{padding:8px 0; border-bottom:1px solid var(--border); font-size:.78rem;}
+  .log-row:last-child{border-bottom:none;}
+  .log-row .log-date{color:var(--text-sub); font-size:.68rem; font-weight:700;}
+  .empty-note{font-size:.78rem; color:var(--text-sub); padding:8px 0;}
+
+  /* TABS */
+  .tabs{display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;}
+  .tab-btn{
+    flex:1; min-width:70px; border:none; background:var(--bg); padding:9px 6px; border-radius:10px;
+    font-size:.72rem; font-weight:700; cursor:pointer; color:var(--text-sub);
+  }
+  .tab-btn.active{background:var(--jee); color:#fff;}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+  .formula-item{background:var(--bg); border-radius:10px; padding:10px 12px; margin-bottom:8px;}
+  .formula-item .f-title{font-size:.82rem; font-weight:700; margin-bottom:3px;}
+  .formula-item .f-body{font-size:.78rem; color:var(--text-sub); line-height:1.4;}
+
+  /* PERFORMANCE FORM */
+  .score-row{display:flex; gap:8px;}
+  .score-row .fld{flex:1;}
+  .fld label{font-size:.7rem; font-weight:700; color:var(--text-sub); display:block; margin-bottom:4px;}
+  .trend-table{width:100%; border-collapse:collapse; font-size:.75rem; margin-top:6px;}
+  .trend-table th, .trend-table td{padding:6px 4px; text-align:center; border-bottom:1px solid var(--border);}
+  .trend-table th{color:var(--text-sub); font-size:.65rem;}
+
+  /* PYQ counter */
+  .pyq-counter{display:flex; align-items:center; justify-content:space-between; background:var(--bg); border-radius:12px; padding:14px; margin-top:8px;}
+  .pyq-total{font-size:1.6rem; font-weight:800; color:var(--jee);}
+  .pyq-label{font-size:.68rem; color:var(--text-sub); font-weight:600;}
+  .pyq-breakdown{display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;}
+  .pyq-chip{flex:1; min-width:80px; background:var(--jee-bg); border-radius:10px; padding:8px; text-align:center;}
+  .pyq-chip b{display:block; font-size:1rem; color:var(--jee);}
+  .pyq-chip span{font-size:.62rem; color:var(--text-sub); font-weight:700;}
+
+  .hidden{display:none !important;}
+
+  /* COUNTDOWN */
+  .countdown-row{display:flex; gap:10px; flex-wrap:wrap;}
+  .cd-chip{
+    flex:1; min-width:130px; background:var(--jee-bg); border-radius:12px; padding:12px;
+    font-size:.7rem; font-weight:600; color:var(--text-sub); text-align:center;
+  }
+  .cd-num{display:block; font-size:1.4rem; font-weight:800; color:var(--jee); margin-bottom:2px;}
+
+  /* STREAKS */
+  .streak-row{display:flex; gap:10px;}
+  .streak-box{flex:1; background:var(--bg); border-radius:12px; padding:12px; text-align:center;}
+  .streak-num{font-size:1.3rem; font-weight:800; color:var(--board);}
+  .streak-label{font-size:.62rem; color:var(--text-sub); font-weight:700; margin-top:2px;}
+
+  /* POMODORO */
+  .pomo-mode{font-size:.75rem; font-weight:700; color:var(--text-sub); text-transform:uppercase; letter-spacing:.6px; margin-bottom:6px;}
+  .pomo-time{font-size:2.6rem; font-weight:800; color:var(--jee); font-variant-numeric:tabular-nums;}
+  .pomo-select{display:flex; gap:6px; justify-content:center; margin-top:12px;}
+  .pomo-select .tab-btn{flex:none; min-width:auto; padding:8px 14px;}
+  .pomo-controls{display:flex; gap:8px; justify-content:center;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>Sync Tracker App</h1>
+  <button class="hamburger" id="hamburgerBtn">☰</button>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="drawer" id="drawer">
+  <h2>Navigate</h2>
+  <div class="drawer-link" data-view="v1">📅 Calendar & Timeline</div>
+  <div class="drawer-link" data-view="v2">🎯 Checklists</div>
+  <div class="drawer-link" data-view="v3">📜 Checklist History</div>
+  <div class="drawer-link" data-view="v4">📊 Test Score Logs</div>
+  <div class="drawer-link" data-view="v5">🗂️ Cheat Sheets Hub</div>
+  <div class="drawer-link" data-view="v6">📈 Progress & Practice</div>
+  <div class="drawer-link" data-view="v7">⏳ Focus Timer</div>
+  <div class="drawer-link" data-view="v8">⚙️ Streaks & Backup</div>
+  <div class="drawer-link" data-view="v9">📘 Full Syllabus & Plan</div>
+</div>
+
+<div class="container">
+
+  <!-- SECTION 1: CALENDAR & TIMELINE -->
+  <div class="view" id="v1">
+    <div class="card">
+      <div class="cal-nav">
+        <button id="prevMonth">‹</button>
+        <div class="month-label" id="monthLabel"></div>
+        <button id="nextMonth">›</button>
+      </div>
+      <div class="cal-grid" id="dowRow"></div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="legend">
+        <span><i class="legend-dot dot-milestone"></i>Milestone Test</span>
+        <span><i class="legend-dot dot-aits"></i>AITS Test</span>
+        <span><i class="legend-dot dot-study"></i>Auto Syllabus Day</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>⏱️ Timeline — <span id="tlDateLabel"></span></h3>
+      <div id="timelineBody"></div>
+      <div id="tlWarning"></div>
+    </div>
+
+  </div>
+
+  <!-- SECTION 2: CHECKLISTS -->
+  <div class="view" id="v2">
+    <div class="card">
+      <h3>✅ Chapter Checklist — <span id="chkDateLabel"></span></h3>
+      <div id="chapterChecklist"></div>
+    </div>
+
+    <div class="card">
+      <h3>➕ Add Custom Task</h3>
+      <div class="sub">Tasks are locked to the currently selected calendar date</div>
+      <div class="add-task-row">
+        <input type="text" id="customTaskInput" placeholder="e.g. Revise Rotational Mechanics formulas">
+        <div class="add-task-row-inline">
+          <select id="customTaskCategory">
+            <option value="General">General</option>
+            <option value="Physics">Physics</option>
+            <option value="Chemistry">Chemistry</option>
+            <option value="Math">Math</option>
+            <option value="Boards">Boards</option>
+          </select>
+          <button class="btn" id="addCustomTaskBtn">+ Add Task</button>
+        </div>
+      </div>
+      <div id="customTaskList"></div>
+    </div>
+
+    <div class="card">
+      <h3>📝 Board Derivation Defense Checklist</h3>
+      <div class="sub">Core Class 12 subjective derivations — November half-yearlies</div>
+      <div id="derivationChecklist"></div>
+    </div>
+
+  </div>
+
+  <!-- SECTION 3: CHECKLIST HISTORY -->
+  <div class="view" id="v3">
+    <div class="card">
+      <h3>🗄️ Accomplishment Archive</h3>
+      <div class="sub">Every completed checklist item — chapter tasks, custom tasks, and board derivations — logged here permanently, most recent first</div>
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <input type="text" id="archiveSearch" placeholder="Search history...">
+      </div>
+      <div class="log-feed" id="archiveFeed"></div>
+      <button class="btn ghost block" id="clearArchiveBtn" style="margin-top:10px;">Clear History</button>
+    </div>
+  </div>
+
+  <!-- SECTION 4: TEST SCORE LOGS -->
+  <div class="view" id="v4">
+    <div class="card" id="noTestCard">
+      <h3>📊 Performance Analytics</h3>
+      <div class="sub">Select a Sunday exam date on the Calendar tab to log scores for that test. No test is scheduled on the currently selected date.</div>
+    </div>
+
+    <div class="card hidden" id="testFormCard">
+      <h3 id="testFormTitle">📊 Performance Analytics</h3>
+      <div class="score-row">
+        <div class="fld"><label>Physics</label><input type="number" id="scorePhy" placeholder="/100"></div>
+        <div class="fld"><label>Chemistry</label><input type="number" id="scoreChem" placeholder="/100"></div>
+        <div class="fld"><label>Math</label><input type="number" id="scoreMath" placeholder="/100"></div>
+      </div>
+      <div style="margin-top:10px;">
+        <label style="font-size:.7rem;font-weight:700;color:var(--text-sub);">Silly Calculation Slips Identified</label>
+        <textarea id="sillySlips" rows="2" placeholder="e.g. Sign error in Gauss law integral"></textarea>
+      </div>
+      <div style="margin-top:10px;">
+        <label style="font-size:.7rem;font-weight:700;color:var(--text-sub);">Conceptual Blindspots to Revise Tonight</label>
+        <textarea id="blindspots" rows="2" placeholder="e.g. Van't Hoff factor for association"></textarea>
+      </div>
+      <button class="btn block" id="saveScoreBtn" style="margin-top:12px;">Save Test Log</button>
+      <div class="empty-note" id="lastSavedNote"></div>
+    </div>
+
+    <div class="card">
+      <h3>📉 Score History & Trend</h3>
+      <div id="trendContainer"></div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: CHEAT SHEETS -->
+  <div class="view" id="v5">
+    <div class="card">
+      <h3>🗂️ Formula Keys & Board Derivations</h3>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="mathTab">Math</button>
+        <button class="tab-btn" data-tab="physTab">Physics</button>
+        <button class="tab-btn" data-tab="chemTab">Chemistry</button>
+        <button class="tab-btn" data-tab="boardTab">Boards</button>
+      </div>
+
+      <div class="tab-panel active" id="mathTab">
+        <div class="formula-item">
+          <div class="f-title">Properties of Adjoint (Matrices)</div>
+          <div class="f-body">|adj(A)| = |A|^(n-1)<br>adj(adj(A)) = |A|^(n-2) · A<br>adj(AB) = adj(B) · adj(A)</div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="physTab">
+        <div class="formula-item">
+          <div class="f-title">Current Electricity — Drift Velocity</div>
+          <div class="f-body">v<sub>d</sub> = eEτ / m</div>
+        </div>
+        <div class="formula-item">
+          <div class="f-title">Temperature Dependence of Resistance</div>
+          <div class="f-body">R = R₀(1 + αΔT)</div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="chemTab">
+        <div class="formula-item">
+          <div class="f-title">Raoult's Law — Deviations</div>
+          <div class="f-body">Positive deviation: A–B interactions weaker than A–A/B–B, P<sub>total</sub> > ideal.<br>Negative deviation: A–B interactions stronger, P<sub>total</sub> &lt; ideal.</div>
+        </div>
+        <div class="formula-item">
+          <div class="f-title">Van 't Hoff Factor</div>
+          <div class="f-body">i = 1 + (n − 1)α — for dissociation into n particles with degree α.</div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="boardTab">
+        <div class="formula-item">
+          <div class="f-title">Derive Lens Maker's Formula</div>
+          <div class="f-body">Apply refraction at two spherical surfaces of the lens, add the results using sign convention to get 1/f = (n−1)(1/R₁ − 1/R₂).</div>
+        </div>
+        <div class="formula-item">
+          <div class="f-title">Electric Field — Infinite Line Charge (Gauss's Law)</div>
+          <div class="f-body">Use a cylindrical Gaussian surface of radius r, length L. Flux = E·(2πrL) = λL/ε₀ ⟹ E = λ/(2πε₀r).</div>
+        </div>
+        <div class="formula-item">
+          <div class="f-title">Boundary Conditions of Wave Interference</div>
+          <div class="f-body">Path difference for constructive: Δ = nλ; destructive: Δ = (n+½)λ. Derive from superposition of two coherent waves with phase difference φ.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: PROGRESS & PRACTICE -->
+  <div class="view" id="v6">
+    <div class="card">
+      <h3>📈 Backlog Progress Tracker</h3>
+      <div class="sub">High-Yield chapters ranked by strategic priority</div>
+      <div id="backlogContainer"></div>
+    </div>
+
+    <div class="card">
+      <h3>⚡ PYQ Speed Counter</h3>
+      <div class="sub">Log a completed PYQ practice sitting (2023–2026 papers)</div>
+      <div class="score-row">
+        <div class="fld"><label>Physics</label><input type="number" id="pyqPhy" min="0" placeholder="0"></div>
+        <div class="fld"><label>Chemistry</label><input type="number" id="pyqChem" min="0" placeholder="0"></div>
+        <div class="fld"><label>Math</label><input type="number" id="pyqMath" min="0" placeholder="0"></div>
+      </div>
+      <button class="btn block" id="logPyqBtn" style="margin-top:10px;">+ Log This Sitting</button>
+      <div class="pyq-counter">
+        <div><div class="pyq-total" id="pyqGrandTotal">0</div><div class="pyq-label">Cumulative PYQs Solved</div></div>
+      </div>
+      <div class="pyq-breakdown">
+        <div class="pyq-chip"><b id="pyqPhyTotal">0</b><span>PHYSICS</span></div>
+        <div class="pyq-chip"><b id="pyqChemTotal">0</b><span>CHEMISTRY</span></div>
+        <div class="pyq-chip"><b id="pyqMathTotal">0</b><span>MATH</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🎯 Daily Study Consistency</h3>
+      <div class="sub">Auto-tracks a "studied day" whenever you complete at least one checklist item</div>
+      <div class="streak-row">
+        <div class="streak-box"><div class="streak-num" id="currentStreak">0</div><div class="streak-label">Current Streak</div></div>
+        <div class="streak-box"><div class="streak-num" id="bestStreak">0</div><div class="streak-label">Best Streak</div></div>
+        <div class="streak-box"><div class="streak-num" id="totalDays">0</div><div class="streak-label">Total Days Studied</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 7: FOCUS TIMER -->
+  <div class="view" id="v7">
+    <div class="card" style="text-align:center;">
+      <h3 style="justify-content:center;">⏱️ Self-Study Timer</h3>
+      <div class="sub">Start when you sit down to study, pause for breaks, stop when done. Today's total adds up automatically across every session.</div>
+      <div class="pomo-time" id="studyTimerDisplay">00:00:00</div>
+      <div class="pomo-controls" style="margin-top:14px;">
+        <button class="btn" id="studyStartBtn">Start</button>
+        <button class="btn ghost" id="studyPauseBtn">Pause</button>
+        <button class="btn ghost" id="studyStopBtn" style="background:var(--red); color:#fff;">Stop</button>
+      </div>
+      <div class="streak-row" style="margin-top:16px;">
+        <div class="streak-box"><div class="streak-num" id="studyTodayTotal">00:00:00</div><div class="streak-label">Total Studied Today</div></div>
+      </div>
+      <div id="studyRunningNote" class="warn-note hidden" style="text-align:left;">⏱️ Timer is running in the background — it keeps counting even if you close or refresh the app, until you hit Stop.</div>
+    </div>
+
+    <div class="card">
+      <h3>📅 Daily Study History</h3>
+      <div class="sub">Every day's studied time, saved automatically — nothing is ever lost on refresh.</div>
+      <div class="log-feed" id="studyHistoryFeed" style="max-height:320px;"></div>
+    </div>
+
+    <div class="card" style="text-align:center;">
+      <h3 style="justify-content:center;">⏳ Pomodoro Focus Timer</h3>
+      <div class="pomo-mode" id="pomoMode">FOCUS</div>
+      <div class="pomo-time" id="pomoTime">25:00</div>
+      <div class="pomo-select">
+        <button class="tab-btn" data-mins="25">25 min</button>
+        <button class="tab-btn" data-mins="45">45 min</button>
+        <button class="tab-btn" data-mins="60">60 min</button>
+      </div>
+      <div class="pomo-controls" style="margin-top:14px;">
+        <button class="btn" id="pomoStartBtn">Start</button>
+        <button class="btn ghost" id="pomoResetBtn">Reset</button>
+      </div>
+      <div class="empty-note" id="pomoSessionsNote" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+  <!-- SECTION 8: STREAKS & BACKUP -->
+  <div class="view" id="v8">
+    <div class="card">
+      <h3>⏳ Exam Countdowns</h3>
+      <div class="countdown-row">
+        <div class="cd-chip"><span class="cd-num" id="cdMains">-</span>Days to JEE Mains</div>
+        <div class="cd-chip"><span class="cd-num" id="cdBoards">-</span>Days to Boards</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>💾 Data Backup</h3>
+      <div class="sub">All data is stored only in this browser's LocalStorage. Export a backup regularly.</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn" id="exportBtn">⬇️ Export Backup</button>
+        <button class="btn ghost" id="importBtn">⬆️ Import Backup</button>
+        <input type="file" id="importFile" accept=".json" style="display:none;">
+      </div>
+      <button class="btn block" id="clearAllBtn" style="margin-top:10px; background:var(--red);">🗑️ Clear All Data</button>
+    </div>
+  </div>
+
+  <!-- SECTION 9: FULL SYLLABUS & PLAN -->
+  <div class="view" id="v9">
+    <div class="card">
+      <h3>📘 Full JEE + Boards Syllabus Tracker</h3>
+      <div class="sub">Every PCM chapter for JEE Main (Class 11 + 12), which fully covers your Boards PCM theory too. Mark each chapter's status as you go — this is your single source of truth for "is anything left".</div>
+      <div id="syllabusPlanBox"></div>
+    </div>
+
+    <div class="card">
+      <div class="tabs">
+        <button class="tab-btn active" data-syltab="sylPhy">Physics</button>
+        <button class="tab-btn" data-syltab="sylChem">Chemistry</button>
+        <button class="tab-btn" data-syltab="sylMath">Math</button>
+      </div>
+      <div class="tab-panel active" id="sylPhy">
+        <div class="progress-item"><div class="progress-top"><div class="progress-name">Physics Overall</div></div><div class="progress-bar-track"><div class="progress-bar-fill" id="sylPhyBar" style="width:0%; background:var(--jee);"></div></div></div>
+        <div id="sylPhyList"></div>
+      </div>
+      <div class="tab-panel" id="sylChem">
+        <div class="progress-item"><div class="progress-top"><div class="progress-name">Chemistry Overall</div></div><div class="progress-bar-track"><div class="progress-bar-fill" id="sylChemBar" style="width:0%; background:var(--jee);"></div></div></div>
+        <div id="sylChemList"></div>
+      </div>
+      <div class="tab-panel" id="sylMath">
+        <div class="progress-item"><div class="progress-top"><div class="progress-name">Math Overall</div></div><div class="progress-bar-track"><div class="progress-bar-fill" id="sylMathBar" style="width:0%; background:var(--jee);"></div></div></div>
+        <div id="sylMathList"></div>
+      </div>
+      <div class="warn-note">Boards note: also budget time separately for English/any non-PCM subject and the Class 12 practical/project marks — those aren't tracked here.</div>
+    </div>
+
+    <div class="card">
+      <h3>🗓️ Coverage Plan (from tomorrow)</h3>
+      <div class="sub">Remaining chapters are auto-inserted into the actual Calendar & Timeline (Section 1) and Chapter Checklist (Section 2) on any day that doesn't already have a hand-written plan — look for the green dot on the Calendar. This list below is just the flat summary of that same sync.</div>
+      <div id="coveragePlanBody"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  /* ---------------- SYLLABUS / TEST DATABASE ---------------- */
+const TESTS = {
+    '2026-09-20': { name:'AITS Test 2 (Main)', syllabus:'Current Electricity; Chemical Kinetics; Relations and Functions Inverse Trigonometric Functions Continuity and Differentiability', chapter:'Current Electricity' },
+    '2026-09-27': { name:'AITS Test 3 (Advanced)', syllabus:'Electric Charges and Fields Electrostatic Potential and Capacitance Current Electricity; Solutions Electrochemistry Chemical Kinetics; Determinants Matrices Relations and Functions Inverse Trigonometric Functions Continuity and Differentiability', chapter:'Chemical Kinetics' },
+    '2026-10-04': { name:'Milestone Test 8 (Main)', syllabus:'Ray Optics and Optical Instruments; Coordination Compounds; Application of Integrals Differential Equation', chapter:'Coordination Compounds' },
+    '2026-10-11': { name:'Milestone Test 9 (Main)', syllabus:'Electric Charges and Fields Electrostatic Potential and Capacitance Current Electricity Moving Charges and Magnetism Magnetism and Matter Electromagnetic Induction Alternating Current Electromagnetic Waves; Solutions Electrochemistry Chemical Kinetics Organic 11th - Revision { GOC & Hydrocarbon } Haloalkanes and Haloarenes Alcohols, Phenols and Ethers Aldehydes, Ketones and Carboxylic Acids Amines Biomolecules Coordination Compounds; Determinants Matrices Relations and Functions Inverse Trigonometric Functions Continuity and Differentiability Method of Differentiation Application of Derivatives Indefinite Integration Definite Integration', chapter:'Haloalkanes & Haloarenes' },
+    '2026-10-25': { name:'Milestone Test 10 (Main)', syllabus:'Wave Optics Dual Nature of Radiation and Matter Atoms Nuclei Semiconductor Electronics - Materials, Devices and Simple Circuits; The p-Block Elements The d and f-Block Elements Salt analysis; Vector Algebra Three-Dimensional Geometry Linear Programming Probability', chapter:'Vector & 3D Geometry' },
+    '2026-11-01': { name:'AITS Test 4 (Main)', syllabus:'Moving Charges and Magnetism Magnetism and Matter Electromagnetic Induction Alternating Current Electromagnetic Waves; Haloalkanes and Haloarenes Alcohols, Phenols and Ethers Aldehydes, Ketones and Carboxylic Acids; Method of Differentiation Application of Derivatives Indefinite Integration Definite Integration', chapter:'EMI & AC' },
+    '2026-11-22': { name:'Milestone Test 11 (Advanced)', syllabus:'Full Syllabus 12th', chapter:'Full Syllabus 12th Revision' },
+    '2026-12-06': { name:'Milestone Test 12 (Main)', syllabus:'Full Syllabus 11th', chapter:'Full Syllabus 11th Revision' },
+    '2026-12-13': { name:'AITS Test 5 (Main)', syllabus:'Ray Optics and Optical Instruments Wave Optics Dual Nature of Radiation and Matter Atoms; Amines Biomolecules Coordination Compounds Salt analysis; Application of Integrals Differential Equations Vector Algebra', chapter:'Ray Optics & Optical Instruments' },
+    '2026-12-20': { name:'AITS Test 6 (Advanced)', syllabus:'Moving Charges and Magnetism Magnetism and Matter Electromagnetic Induction Alternating Current Electromagnetic Wave Ray Optics and Optical Instruments Wave Optics Dual Nature of Radiation and Matter Atoms; Haloalkanes and Haloarenes Alcohols, Phenols and Ethers Aldehydes, Ketones and Carboxylic Acids Amines Biomolecules Coordination Compounds Salt analysis; Method of Differentiation Application of Derivatives Indefinite Integration Definite Integration Application of Integrals Differential Equations Vector Algebra', chapter:'Amines' },
+    '2027-01-03': { name:'AITS Test 7 (Main)', syllabus:'Full Syllabus * As per NTA JEE Main', chapter:'Full Syllabus Cumulative National Exam' },
+    '2027-01-10': { name:'AITS Test 8 (Main)', syllabus:'Full Syllabus * As per NTA JEE Main', chapter:'Full Syllabus Cumulative National Exam' },
+    '2027-01-13': { name:'AITS Test 9 (Main)', syllabus:'Full Syllabus * As per NTA JEE Main', chapter:'Full Syllabus Cumulative National Exam' },
+    '2027-01-17': { name:'AITS Test 10 (Main)', syllabus:'Full Syllabus * As per NTA JEE Main', chapter:'Full Syllabus Cumulative National Exam' },
+    '2027-01-20': { name:'AITS Test 11 (Main)', syllabus:'Full Syllabus * As per NTA JEE Main', chapter:'Full Syllabus Cumulative National Exam' },
+    '2027-02-07': { name:'AITS Test 12 (Advanced)', syllabus:'Full Syllabus', chapter:'Full Syllabus Cumulative National Exam' },
+    '2027-03-21': { name:'AITS Test 13 (Main)', syllabus:'Full Syllabus * As per NTA JEE Main', chapter:'Full Syllabus Cumulative National Exam' },
+    '2027-03-28': { name:'AITS Test 14 (Main)', syllabus:'Full Syllabus * As per NTA JEE Main', chapter:'Full Syllabus Cumulative National Exam' },
+    '2027-03-31': { name:'AITS Test 15 (Main)', syllabus:'Full Syllabus * As per NTA JEE Main', chapter:'Full Syllabus Cumulative National Exam' },
+    '2027-04-18': { name:'AITS Test 16 (Advanced)', syllabus:'Full Syllabus', chapter:'Full Syllabus Cumulative National Exam' },
+    '2027-04-25': { name:'AITS Test 17 (Advanced)', syllabus:'Full Syllabus', chapter:'Full Syllabus Cumulative National Exam' },
+    '2027-05-02': { name:'AITS Test 18 (Advanced)', syllabus:'Full Syllabus', chapter:'Full Syllabus Cumulative National Exam' },
+    '2027-05-09': { name:'AITS Test 19 (Advanced)', syllabus:'Full Syllabus', chapter:'Full Syllabus Cumulative National Exam' },
+    '2027-05-12': { name:'AITS Test 20 (Advanced)', syllabus:'Full Syllabus', chapter:'Full Syllabus Cumulative National Exam' },
+  };
+
+  const AITS_DATES = ['2026-09-20','2026-09-27','2026-11-01','2026-12-13','2026-12-20','2027-01-03','2027-01-10','2027-01-13','2027-01-17','2027-01-20','2027-02-07','2027-03-21','2027-03-28','2027-03-31','2027-04-18','2027-04-25','2027-05-02','2027-05-09','2027-05-12'];
+
+  const CHAPTER_PROMPTS = {
+    'Matrices & Determinants': ['Have you watched the complete detailed one-shot lecture for Determinants?', 'Have you solved at least 30-40 high-yield recent PYQs for Matrices?'],
+    'Chemical Kinetics': ['Have you revised the rate law derivations for Chemical Kinetics?', 'Have you solved integrated rate equation PYQs from 2023-2026?'],
+    'General Organic Chemistry': ['Have you revised inductive & resonance effects in GOC?', 'Have you solved 30+ high-yield GOC PYQs?'],
+    'General Organic Chemistry (GOC)': ['Have you revised inductive & resonance effects in GOC?', 'Have you solved 30+ high-yield GOC PYQs?'],
+    'Vector & 3D Geometry': ['Have you revised shortest distance between skew lines?', 'Have you solved recent Vector-3D PYQs?'],
+    'Coordination Compounds': ['Have you revised IUPAC naming & isomerism in Coordination Compounds?', 'Have you solved CFT-based PYQs from recent years?'],
+    'Haloalkanes & Haloarenes': ['Have you revised SN1/SN2 mechanisms for Haloalkanes?', 'Have you solved named-reaction PYQs for Haloarenes?']
+  };
+  function chapterPrompts(chapter){
+    if (CHAPTER_PROMPTS[chapter]) return CHAPTER_PROMPTS[chapter];
+    return [
+      `Have you watched the detailed one-shot lecture for ${chapter}?`,
+      `Have you solved 25-30 high-yield PYQs (2023–2026) for ${chapter}?`
+    ];
+  }
+
+  const BACKLOG_CHAPTERS = [
+    { name:'Matrices & Determinants', tier:'green' },
+    { name:'Modern Physics', tier:'green' },
+    { name:'Mole Concept', tier:'green' },
+    { name:'Current Electricity', tier:'green' },
+    { name:'KTG & Thermodynamics', tier:'green' },
+    { name:'GOC & Hydrocarbons', tier:'yellow' },
+    { name:'Electrostatics & Capacitors', tier:'yellow' },
+    { name:'Vector-3D Geometry', tier:'yellow' },
+    { name:'Coordination Compounds', tier:'yellow' }
+  ];
+  const STATUS_OPTIONS = ['Not Started', 'In Progress', 'Solved 2023-2026 PYQs', 'Completed'];
+  const STATUS_PCT = { 'Not Started':0, 'In Progress':35, 'Solved 2023-2026 PYQs':70, 'Completed':100 };
+
+  /* ---------------- FULL JEE + BOARDS PCM SYLLABUS ---------------- */
+  const FULL_SYLLABUS = {
+    Physics: [
+      { name:'Units, Dimensions & Errors', cls:11, tier:1 },
+      { name:'Kinematics', cls:11, tier:1 },
+      { name:'Laws of Motion (NLM + Friction)', cls:11, tier:2 },
+      { name:'Work, Energy & Power', cls:11, tier:2 },
+      { name:'Mechanical Properties of Solids', cls:11, tier:1 },
+      { name:'Mechanical Properties of Fluids', cls:11, tier:2 },
+      { name:'Thermal Properties of Matter', cls:11, tier:1 },
+      { name:'KTG & Thermodynamics (Kinetic Theory of Gases)', cls:11, tier:2 },
+      { name:'Thermodynamics', cls:11, tier:2 },
+      { name:'Oscillations (SHM)', cls:11, tier:2 },
+      { name:'Waves', cls:11, tier:2 },
+      { name:'Gravitation', cls:11, tier:2 },
+      { name:'System of Particles & Rotational Motion', cls:11, tier:3 },
+      { name:'Electrostatics & Capacitors', cls:12, tier:2 },
+      { name:'Current Electricity', cls:12, tier:1 },
+      { name:'Ray Optics & Optical Instruments', cls:12, tier:2 },
+      { name:'Wave Optics', cls:12, tier:2 },
+      { name:'Semiconductor Electronics', cls:12, tier:1 },
+      { name:'Atoms', cls:12, tier:1 },
+      { name:'Nuclei', cls:12, tier:1 },
+      { name:'Dual Nature of Radiation & Matter', cls:12, tier:2 },
+      { name:'Magnetic Effects of Current', cls:12, tier:3 },
+      { name:'Magnetism & Matter', cls:12, tier:2 },
+      { name:'EMI & AC (Electromagnetic Induction / Alternating Current)', cls:12, tier:3 },
+      { name:'Electromagnetic Waves', cls:12, tier:1 }
+    ],
+    Chemistry: [
+      { name:'Some Basic Concepts of Chemistry / Mole Concept', cls:11, tier:1 },
+      { name:'Redox Reactions', cls:11, tier:1 },
+      { name:'Structure of Atom', cls:11, tier:2 },
+      { name:'Classification of Elements & Periodicity', cls:11, tier:1 },
+      { name:'Chemical Bonding & Molecular Structure', cls:11, tier:3 },
+      { name:'States of Matter (Gaseous & Liquid)', cls:11, tier:2 },
+      { name:'Chemical Thermodynamics', cls:11, tier:3 },
+      { name:'Equilibrium (Ionic & Chemical)', cls:11, tier:3 },
+      { name:'Hydrogen', cls:11, tier:1 },
+      { name:'s-Block Elements', cls:11, tier:1 },
+      { name:'p-Block Elements (Group 13 & 14)', cls:11, tier:2 },
+      { name:'Organic Chemistry — Basic Principles & Techniques', cls:11, tier:3 },
+      { name:'Hydrocarbons', cls:11, tier:3 },
+      { name:'Solid State', cls:12, tier:1 },
+      { name:'Solutions', cls:12, tier:2 },
+      { name:'Electrochemistry', cls:12, tier:2 },
+      { name:'Chemical Kinetics', cls:12, tier:2 },
+      { name:'Surface Chemistry', cls:12, tier:1 },
+      { name:'General Principles of Isolation of Elements (Metallurgy)', cls:12, tier:1 },
+      { name:'p-Block Elements (Group 15–18)', cls:12, tier:2 },
+      { name:'d & f Block Elements', cls:12, tier:3 },
+      { name:'Coordination Compounds', cls:12, tier:3 },
+      { name:'Haloalkanes & Haloarenes', cls:12, tier:2 },
+      { name:'Alcohols, Phenols & Ethers', cls:12, tier:2 },
+      { name:'Aldehydes, Ketones & Carboxylic Acids', cls:12, tier:3 },
+      { name:'Amines', cls:12, tier:2 },
+      { name:'Biomolecules', cls:12, tier:1 },
+      { name:'Polymers (Boards) / GOC-linked', cls:12, tier:1 },
+      { name:'Chemistry in Everyday Life (Boards)', cls:12, tier:1 }
+    ],
+    Math: [
+      { name:'Sets, Relations & Functions', cls:11, tier:1 },
+      { name:'Straight Lines', cls:11, tier:1 },
+      { name:'Sequence & Series', cls:11, tier:1 },
+      { name:'Statistics', cls:11, tier:1 },
+      { name:'Complex Numbers & Quadratic Equations', cls:11, tier:2 },
+      { name:'Permutations & Combinations', cls:11, tier:2 },
+      { name:'Binomial Theorem', cls:11, tier:2 },
+      { name:'Trigonometric Functions & Equations', cls:11, tier:2 },
+      { name:'Conic Sections', cls:11, tier:2 },
+      { name:'Introduction to 3D Geometry', cls:11, tier:2 },
+      { name:'Limits & Derivatives (Intro)', cls:11, tier:2 },
+      { name:'Probability (Class 11 basics)', cls:11, tier:2 },
+      { name:'Matrices & Determinants', cls:12, tier:1 },
+      { name:'Inverse Trigonometric Functions', cls:12, tier:1 },
+      { name:'Continuity & Differentiability', cls:12, tier:2 },
+      { name:'Method of Differentiation / Application of Derivatives (AOD)', cls:12, tier:3 },
+      { name:'Indefinite Integration', cls:12, tier:2 },
+      { name:'Definite Integration & Area Under Curve', cls:12, tier:3 },
+      { name:'Differential Equations', cls:12, tier:3 },
+      { name:'Vector & 3D Geometry', cls:12, tier:3 },
+      { name:'Probability & Statistics (Advanced)', cls:12, tier:2 },
+      { name:'Linear Programming (Boards)', cls:12, tier:1 }
+    ]
+  };
+
+  const DERIVATIONS = [
+    "Derive Lens Maker's Formula",
+    "Derive Electric Field due to an Infinite Line Charge using Gauss's Law",
+    "Derive Boundary Conditions of Wave Interference"
+  ];
+
+  /* ---------------- MASTER DAILY SCHEDULE (from JEE Mains & Boards Daily Schedule) ---------------- */
+  // Each block covers a date range (inclusive) with an identical hour-by-hour timeline and a
+  // primary "chapter" used to auto-generate the day's checklist prompts.
+  const SCHEDULE_BLOCKS = [
+    { start:'2026-09-13', end:'2026-09-13', chapter:'Matrices & Determinants', timeline:[
+      ['09:00 AM – 01:00 PM','Self Study & Backlog Clearing (Watch detailed online one-shots)'],
+      ['01:00 PM – 03:00 PM','Lunch & Mind Decompress (Relaxation break)'],
+      ['03:00 PM – 07:30 PM','Online Study — Matrices & Determinants (Class 12 Math | Easy)'],
+      ['07:30 PM – 08:00 PM','Dinner Break'],
+      ['08:00 PM – 11:00 PM','Question Practice — Matrices & Determinants (2023–2026 PYQs)'],
+      ['11:00 PM – 01:00 AM','Weekly Plan Setup & Class 11 Prerequisite Revision (Vectors)']
+    ]},
+    { start:'2026-09-14', end:'2026-09-19', chapter:'Current Electricity Revision (AITS 2 Prep)', timeline:[
+      ['09:00 AM – 02:00 PM','Attend PW Offline Coaching Batch (Running topics)'],
+      ['02:00 PM – 03:00 PM','Travel Home & Lunch Buffer'],
+      ['03:00 PM – 04:30 PM','Offline Coaching Revision & Daily Homework/DPP'],
+      ['04:30 PM – 07:30 PM','Online Study — Current Electricity & Chemical Kinetics Revision (Class 12 | AITS 2 syllabus)'],
+      ['07:30 PM – 08:00 PM','Dinner Block'],
+      ['08:00 PM – 11:00 PM','Question Practice — Current Electricity / Chemical Kinetics / Functions-Continuity PYQs (2023–2026)'],
+      ['11:00 PM – 12:00 AM','📝 Boards Lock-In (NCERT Line Reads)', true],
+      ['12:00 AM – 01:00 AM','Next Test Prep & Formula Tracking']
+    ]},
+    { start:'2026-09-20', end:'2026-09-20', chapter:'Electrostatics & Capacitors (AITS 3 Prep)', test:true, timeline:[
+      ['09:00 AM – 12:00 PM','Coaching AITS Test 2 (Main) — Syllabus: Current Electricity, Chemical Kinetics, Relations & Functions / Inverse Trig / Continuity & Diff (+30% cumulative)'],
+      ['12:00 PM – 01:00 PM','⚠️ Travel Back Home & Eat Lunch — finish strictly by 1:00 PM'],
+      ['01:00 PM – 03:00 PM','Post-Test Relaxation Break (No studying)'],
+      ['03:00 PM – 07:30 PM','Deep Test Analysis & Error Logging (Rework wrong questions)'],
+      ['07:30 PM – 08:00 PM','Dinner Block'],
+      ['08:00 PM – 11:00 PM','Online Study — Electrostatics & Capacitors (AITS 3 Prep)'],
+      ['11:00 PM – 01:00 AM','Formula Book Revision']
+    ]},
+    { start:'2026-09-21', end:'2026-09-26', chapter:'Cumulative E&M + Kinetics Revision (AITS 3 Prep)', timeline:[
+      ['09:00 AM – 02:00 PM','Attend PW Offline Coaching Batch (Running topics)'],
+      ['02:00 PM – 03:00 PM','Travel Home & Lunch Buffer'],
+      ['03:00 PM – 04:30 PM','Offline Coaching Revision & Daily Homework/DPP'],
+      ['04:30 PM – 07:30 PM','Online Study — Electrostatics & Capacitors + Current Electricity cumulative revision'],
+      ['07:30 PM – 08:00 PM','Dinner Block'],
+      ['08:00 PM – 11:00 PM','Question Practice — Solutions / Electrochemistry / Chemical Kinetics + Determinants/Matrices/Functions PYQs'],
+      ['11:00 PM – 12:00 AM','📝 Boards Lock-In (NCERT Line Reads)', true],
+      ['12:00 AM – 01:00 AM','Next Test Prep & Formula Tracking']
+    ]},
+    { start:'2026-09-27', end:'2026-09-27', chapter:'Ray Optics & Optical Instruments', test:true, timeline:[
+      ['09:00 AM – 12:00 PM','Coaching AITS Test 3 (Advanced) — Syllabus: Electrostatics + Current Electricity (cumulative), Solutions/Electrochemistry/Kinetics, Determinants/Matrices/Functions/Continuity (+30% cumulative)'],
+      ['12:00 PM – 01:00 PM','⚠️ Travel Back Home & Eat Lunch — finish strictly by 1:00 PM'],
+      ['01:00 PM – 03:00 PM','Post-Test Relaxation Break (No studying)'],
+      ['03:00 PM – 07:30 PM','Deep Test Analysis & Error Logging (Rework wrong questions)'],
+      ['07:30 PM – 08:00 PM','Dinner Block'],
+      ['08:00 PM – 11:00 PM','Online Study — Ray Optics & Optical Instruments'],
+      ['11:00 PM – 01:00 AM','Formula Book Revision']
+    ]},
+    { start:'2026-09-28', end:'2026-10-03', chapter:'Ray Optics & Optical Instruments / Coordination Compounds', timeline:[
+      ['09:00 AM – 02:00 PM','Attend PW Offline Coaching Batch (Running topics)'],
+      ['02:00 PM – 03:00 PM','Travel Home & Lunch Buffer'],
+      ['03:00 PM – 04:30 PM','Offline Coaching Revision & Daily Homework/DPP'],
+      ['04:30 PM – 07:30 PM','Online Study — Ray Optics & Optical Instruments (Class 12 Physics) + Coordination Compounds (Class 12 Chem)'],
+      ['07:30 PM – 08:00 PM','Dinner Block'],
+      ['08:00 PM – 11:00 PM','Question Practice — Application of Integrals & Differential Equations (Class 12 Math) PYQs'],
+      ['11:00 PM – 12:00 AM','📝 Boards Lock-In (NCERT Line Reads)', true],
+      ['12:00 AM – 01:00 AM','Next Test Prep & Formula Tracking']
+    ]},
+    { start:'2026-10-04', end:'2026-10-04', chapter:'Haloalkanes & Haloarenes (Milestone 9 Prep)', test:true, timeline:[
+      ['09:00 AM – 12:00 PM','Coaching Milestone Test 8 (Main) — Syllabus: Ray Optics & Optical Instruments, Coordination Compounds, Application of Integrals / Differential Equations'],
+      ['12:00 PM – 01:00 PM','⚠️ Travel Back Home & Eat Lunch — finish strictly by 1:00 PM'],
+      ['01:00 PM – 03:00 PM','Post-Test Relaxation Break (No studying)'],
+      ['03:00 PM – 07:30 PM','Deep Test Analysis & Error Logging (Rework wrong questions)'],
+      ['07:30 PM – 08:00 PM','Dinner Block'],
+      ['08:00 PM – 11:00 PM','Online Study — Haloalkanes & Haloarenes (Milestone 9 Prep)'],
+      ['11:00 PM – 01:00 AM','Formula Book Revision']
+    ]},
+    { start:'2026-10-05', end:'2026-10-10', chapter:'Milestone 9 Cumulative Revision (E&M + Organic + Calculus)', timeline:[
+      ['09:00 AM – 02:00 PM','Attend PW Offline Coaching Batch (Running topics)'],
+      ['02:00 PM – 03:00 PM','Travel Home & Lunch Buffer'],
+      ['03:00 PM – 04:30 PM','Offline Coaching Revision & Daily Homework/DPP'],
+      ['04:30 PM – 07:30 PM','Online Study — Full E&M cumulative (Electrostatics→EMI/AC) + Organic (GOC→Coordination) + Calculus cumulative revision'],
+      ['07:30 PM – 08:00 PM','Dinner Block'],
+      ['08:00 PM – 11:00 PM','Question Practice — Mixed cumulative PYQ sprint — Physics / Chemistry / Math (2023–2026)'],
+      ['11:00 PM – 12:00 AM','📝 Boards Lock-In (NCERT Line Reads)', true],
+      ['12:00 AM – 01:00 AM','Next Test Prep & Formula Tracking']
+    ]},
+    { start:'2026-10-11', end:'2026-10-11', chapter:'Wave Optics & Modern Physics', test:true, timeline:[
+      ['09:00 AM – 12:00 PM','Coaching Milestone Test 9 (Main) — Syllabus: Full E&M cumulative (Physics), Organic + Coordination Compounds cumulative (Chemistry), Calculus cumulative (Math)'],
+      ['12:00 PM – 01:00 PM','⚠️ Travel Back Home & Eat Lunch — finish strictly by 1:00 PM'],
+      ['01:00 PM – 03:00 PM','Post-Test Relaxation Break (No studying)'],
+      ['03:00 PM – 07:30 PM','Deep Test Analysis & Error Logging (Rework wrong questions)'],
+      ['07:30 PM – 08:00 PM','Dinner Block'],
+      ['08:00 PM – 11:00 PM','Online Study — Wave Optics & Modern Physics'],
+      ['11:00 PM – 01:00 AM','Formula Book Revision']
+    ]},
+    { start:'2026-10-12', end:'2026-10-24', chapter:'Wave Optics & Modern Physics / d-f Block / Vector-3D Geometry', timeline:[
+      ['09:00 AM – 02:00 PM','Attend PW Offline Coaching Batch (Running topics)'],
+      ['02:00 PM – 03:00 PM','Travel Home & Lunch Buffer'],
+      ['03:00 PM – 04:30 PM','Offline Coaching Revision & Daily Homework/DPP'],
+      ['04:30 PM – 07:30 PM','Online Study — Wave Optics, Dual Nature of Radiation & Matter, Atoms, Nuclei, Semiconductor Electronics + p-Block/d-f Block/Salt Analysis'],
+      ['07:30 PM – 08:00 PM','Dinner Block'],
+      ['08:00 PM – 11:00 PM','Question Practice — Vector Algebra / 3D Geometry / Linear Programming / Probability PYQs'],
+      ['11:00 PM – 12:00 AM','📝 Boards Lock-In (NCERT Line Reads)', true],
+      ['12:00 AM – 01:00 AM','Next Test Prep & Formula Tracking']
+    ]},
+    { start:'2026-10-25', end:'2026-10-25', chapter:'EMI & AC', test:true, timeline:[
+      ['09:00 AM – 12:00 PM','Coaching Milestone Test 10 (Main) — Syllabus: Wave Optics/Dual Nature/Atoms/Nuclei/Semiconductors, p-Block/d-f Block/Salt Analysis, Vectors/3D Geometry/LP/Probability'],
+      ['12:00 PM – 01:00 PM','⚠️ Travel Back Home & Eat Lunch — finish strictly by 1:00 PM'],
+      ['01:00 PM – 03:00 PM','Post-Test Relaxation Break (No studying)'],
+      ['03:00 PM – 07:30 PM','Deep Test Analysis & Error Logging (Rework wrong questions)'],
+      ['07:30 PM – 08:00 PM','Dinner Block'],
+      ['08:00 PM – 11:00 PM','Online Study — EMI & AC'],
+      ['11:00 PM – 01:00 AM','Formula Book Revision']
+    ]},
+    { start:'2026-10-26', end:'2026-10-31', chapter:'EMI & AC + Organic Reactions Revision (AITS 4 Prep)', timeline:[
+      ['09:00 AM – 02:00 PM','Attend PW Offline Coaching Batch (Running topics)'],
+      ['02:00 PM – 03:00 PM','Travel Home & Lunch Buffer'],
+      ['03:00 PM – 04:30 PM','Offline Coaching Revision & Daily Homework/DPP'],
+      ['04:30 PM – 07:30 PM','Online Study — EMI & AC cumulative + Haloalkanes/Alcohols/Aldehydes cumulative revision'],
+      ['07:30 PM – 08:00 PM','Dinner Block'],
+      ['08:00 PM – 11:00 PM','Question Practice — Method of Differentiation → Definite Integration cumulative PYQs'],
+      ['11:00 PM – 12:00 AM','📝 Boards Lock-In (NCERT Line Reads)', true],
+      ['12:00 AM – 01:00 AM','Next Test Prep & Formula Tracking']
+    ]},
+    { start:'2026-11-01', end:'2026-11-01', chapter:'Full Syllabus 12th Revision (Milestone 11 Prep)', test:true, timeline:[
+      ['09:00 AM – 12:00 PM','Coaching AITS Test 4 (Main) — Syllabus: EMI & AC (cumulative), Haloalkanes/Alcohols/Aldehydes (cumulative), Method of Differentiation → Definite Integration (cumulative) (+30% cumulative)'],
+      ['12:00 PM – 01:00 PM','⚠️ Travel Back Home & Eat Lunch — finish strictly by 1:00 PM'],
+      ['01:00 PM – 03:00 PM','Post-Test Relaxation Break (No studying)'],
+      ['03:00 PM – 07:30 PM','Deep Test Analysis & Error Logging (Rework wrong questions)'],
+      ['07:30 PM – 08:00 PM','Dinner Block'],
+      ['08:00 PM – 11:00 PM','Online Study — Full Syllabus 12th Revision (Milestone 11 Prep)'],
+      ['11:00 PM – 01:00 AM','Formula Book Revision']
+    ]},
+    { start:'2026-11-02', end:'2026-11-21', chapter:'Board Half-Yearly Revision + Full Syllabus 12th Prep', timeline:[
+      ['09:00 AM – 02:00 PM','📝 Board Half-Yearly Papers / School Desk Revisions', true],
+      ['02:00 PM – 03:00 PM','Lunch & Transit Buffer'],
+      ['03:00 PM – 07:30 PM','📝 NCERT Comprehensive Textbook Lines Reading (Full Class 12 Theory)', true],
+      ['07:30 PM – 08:00 PM','Dinner Block'],
+      ['08:00 PM – 11:00 PM','Full Syllabus 12th Rapid Revision (Physics/Chem/Math — Milestone 11 Prep)'],
+      ['11:00 PM – 01:00 AM',"📝 Boards Shield Slot: Subjective long derivations (Lens Maker's formula, Gauss Law)", true]
+    ]},
+    { start:'2026-11-22', end:'2026-11-22', chapter:'Full Syllabus 11th Revision (Milestone 12 Prep)', test:true, timeline:[
+      ['09:00 AM – 12:00 PM','Coaching Milestone Test 11 (Advanced) — Syllabus: Full Syllabus — Class 12 (Physics, Chemistry, Math)'],
+      ['12:00 PM – 01:00 PM','⚠️ Travel Back Home & Eat Lunch — finish strictly by 1:00 PM'],
+      ['01:00 PM – 03:00 PM','Post-Test Relaxation Break (No studying)'],
+      ['03:00 PM – 07:30 PM','Deep Test Analysis & Error Logging (Rework wrong questions)'],
+      ['07:30 PM – 08:00 PM','Dinner Block'],
+      ['08:00 PM – 11:00 PM','Online Study — Full Syllabus 11th Revision (Milestone 12 Prep)'],
+      ['11:00 PM – 01:00 AM','Formula Book Revision']
+    ]},
+    { start:'2026-11-23', end:'2026-12-05', chapter:'Full Syllabus 11th Revision', timeline:[
+      ['09:00 AM – 02:00 PM','Attend PW Offline Coaching Batch (Running topics)'],
+      ['02:00 PM – 03:00 PM','Travel Home & Lunch Buffer'],
+      ['03:00 PM – 04:30 PM','Offline Coaching Revision & Daily Homework/DPP'],
+      ['04:30 PM – 07:30 PM','Online Study — Full Class 11 Syllabus rapid revision — Physics/Chemistry/Math (Milestone 12 Prep)'],
+      ['07:30 PM – 08:00 PM','Dinner Block'],
+      ['08:00 PM – 11:00 PM','Question Practice — Class 11 cumulative PYQ sprint (2023–2026)'],
+      ['11:00 PM – 12:00 AM','📝 Boards Lock-In (NCERT Line Reads)', true],
+      ['12:00 AM – 01:00 AM','Next Test Prep & Formula Tracking']
+    ]},
+    { start:'2026-12-06', end:'2026-12-06', chapter:'Ray Optics & Wave Optics Revision (AITS 5 Prep)', test:true, timeline:[
+      ['09:00 AM – 12:00 PM','Coaching Milestone Test 12 (Main) — Syllabus: Full Syllabus — Class 11 (Physics, Chemistry, Math)'],
+      ['12:00 PM – 01:00 PM','⚠️ Travel Back Home & Eat Lunch — finish strictly by 1:00 PM'],
+      ['01:00 PM – 03:00 PM','Post-Test Relaxation Break (No studying)'],
+      ['03:00 PM – 07:30 PM','Deep Test Analysis & Error Logging (Rework wrong questions)'],
+      ['07:30 PM – 08:00 PM','Dinner Block'],
+      ['08:00 PM – 11:00 PM','Online Study — Ray Optics & Wave Optics Revision (AITS 5 Prep)'],
+      ['11:00 PM – 01:00 AM','Formula Book Revision']
+    ]},
+    { start:'2026-12-07', end:'2026-12-12', chapter:'Optics & Modern Physics / Organic Chem Revision (AITS 5 Prep)', timeline:[
+      ['09:00 AM – 02:00 PM','Attend PW Offline Coaching Batch (Running topics)'],
+      ['02:00 PM – 03:00 PM','Travel Home & Lunch Buffer'],
+      ['03:00 PM – 04:30 PM','Offline Coaching Revision & Daily Homework/DPP'],
+      ['04:30 PM – 07:30 PM','Online Study — Ray Optics/Wave Optics/Dual Nature/Atoms cumulative + Amines/Biomolecules/Coordination/Salt Analysis cumulative'],
+      ['07:30 PM – 08:00 PM','Dinner Block'],
+      ['08:00 PM – 11:00 PM','Question Practice — Application of Integrals / Differential Equations / Vector Algebra cumulative PYQs'],
+      ['11:00 PM – 12:00 AM','📝 Boards Lock-In (NCERT Line Reads)', true],
+      ['12:00 AM – 01:00 AM','Next Test Prep & Formula Tracking']
+    ]},
+    { start:'2026-12-13', end:'2026-12-13', chapter:'Full Cumulative Revision (AITS 6 Prep)', test:true, timeline:[
+      ['09:00 AM – 12:00 PM','Coaching AITS Test 5 (Main) — Syllabus: Ray Optics/Wave Optics/Dual Nature/Atoms, Amines/Biomolecules/Coordination/Salt Analysis, Integrals/Diff Eq/Vector Algebra (+30% cumulative)'],
+      ['12:00 PM – 01:00 PM','⚠️ Travel Back Home & Eat Lunch — finish strictly by 1:00 PM'],
+      ['01:00 PM – 03:00 PM','Post-Test Relaxation Break (No studying)'],
+      ['03:00 PM – 07:30 PM','Deep Test Analysis & Error Logging (Rework wrong questions)'],
+      ['07:30 PM – 08:00 PM','Dinner Block'],
+      ['08:00 PM – 11:00 PM','Online Study — Full Cumulative Revision (AITS 6 Prep)'],
+      ['11:00 PM – 01:00 AM','Formula Book Revision']
+    ]},
+    { start:'2026-12-14', end:'2026-12-19', chapter:'Full Cumulative Revision (AITS 6 Prep)', timeline:[
+      ['09:00 AM – 02:00 PM','Attend PW Offline Coaching Batch (Running topics)'],
+      ['02:00 PM – 03:00 PM','Travel Home & Lunch Buffer'],
+      ['03:00 PM – 04:30 PM','Offline Coaching Revision & Daily Homework/DPP'],
+      ['04:30 PM – 07:30 PM','Online Study — Full E&M + Optics cumulative + Full Organic cumulative revision'],
+      ['07:30 PM – 08:00 PM','Dinner Block'],
+      ['08:00 PM – 11:00 PM','Question Practice — Full Calculus cumulative PYQs (Method of Diff → Vector Algebra)'],
+      ['11:00 PM – 12:00 AM','📝 Boards Lock-In (NCERT Line Reads)', true],
+      ['12:00 AM – 01:00 AM','Next Test Prep & Formula Tracking']
+    ]},
+    { start:'2026-12-20', end:'2026-12-20', chapter:'Full Syllabus Revision', test:true, timeline:[
+      ['09:00 AM – 12:00 PM','Coaching AITS Test 6 (Advanced) — Syllabus: Full E&M + Optics cumulative, Full Organic cumulative, Full Calculus cumulative (+30% cumulative)'],
+      ['12:00 PM – 01:00 PM','⚠️ Travel Back Home & Eat Lunch — finish strictly by 1:00 PM'],
+      ['01:00 PM – 03:00 PM','Post-Test Relaxation Break (No studying)'],
+      ['03:00 PM – 07:30 PM','Deep Test Analysis & Error Logging (Rework wrong questions)'],
+      ['07:30 PM – 08:00 PM','Dinner Block'],
+      ['08:00 PM – 11:00 PM','Online Study — Full Syllabus Revision'],
+      ['11:00 PM – 01:00 AM','Formula Book Revision']
+    ]},
+    { start:'2026-12-21', end:'2026-12-31', chapter:'Transition to Full Mock Exam Phase', timeline:[
+      ['09:00 AM – 02:00 PM','Morning Study — Close out any remaining Class 11/12 backlog chapters'],
+      ['02:00 PM – 03:00 PM','Lunch & Reset'],
+      ['03:00 PM – 04:30 PM','Coaching Full Syllabus Test Re-solving Session'],
+      ['04:30 PM – 07:30 PM','Online Study — Weak Chapter Cleanup (last window before mock-only phase)'],
+      ['07:30 PM – 08:00 PM','Dinner Block'],
+      ['08:00 PM – 11:00 PM','Question Practice (Eduniti Modern PYQ 2024–2026 + Neha Agrawal sessions)'],
+      ['11:00 PM – 01:00 AM','Personal Error Book Analysis & Formula Fixes']
+    ]},
+    { start:'2027-01-01', end:'2027-05-31', chapter:null, timeline:[
+      ['—','⚠️ CRITICAL RULE: STOP LEARNING ANY NEW CHAPTERS'],
+      ['09:00 AM – 12:00 PM','Timed 3-Hour Computer Based Mock Exam (Full Syllabus) — every alternate day'],
+      ['04:30 PM – 11:00 PM','Deep review of error logs, rewrite formulas, memorize Inorganic charts']
+    ]}
+  ];
+
+  // Expand each block into a flat date → schedule map for O(1) lookup.
+  const DAILY_SCHEDULE = {};
+  SCHEDULE_BLOCKS.forEach(block => {
+    let cursor = parseDate(block.start);
+    const end = parseDate(block.end);
+    while (cursor <= end){
+      DAILY_SCHEDULE[fmtDate(cursor)] = block;
+      cursor.setDate(cursor.getDate() + 1);
+    }
+  });
+
+  // Map each existing schedule "chapter" label to the exact Full-Syllabus chapter(s) it teaches,
+  // so ticking off a scheduled day auto-marks the matching syllabus chapter(s) as Completed,
+  // and so the gap-filler below knows what's already spoken for and won't re-teach it.
+  const ALIAS_TO_SYLLABUS = {
+    'Matrices & Determinants': [{ subject:'Math', name:'Matrices & Determinants' }],
+    'Matrices & Determinants / Mole Concept': [
+      { subject:'Math', name:'Matrices & Determinants' },
+      { subject:'Chemistry', name:'Some Basic Concepts of Chemistry / Mole Concept' }
+    ],
+    'Modern Physics': [
+      { subject:'Physics', name:'Dual Nature of Radiation & Matter' },
+      { subject:'Physics', name:'Atoms' },
+      { subject:'Physics', name:'Nuclei' },
+      { subject:'Physics', name:'Semiconductor Electronics' }
+    ],
+    'Modern Physics & Semiconductors / Chemical Bonding': [
+      { subject:'Physics', name:'Dual Nature of Radiation & Matter' },
+      { subject:'Physics', name:'Atoms' },
+      { subject:'Physics', name:'Nuclei' },
+      { subject:'Physics', name:'Semiconductor Electronics' },
+      { subject:'Chemistry', name:'Chemical Bonding & Molecular Structure' }
+    ],
+    'Vector & 3D Geometry': [{ subject:'Math', name:'Vector & 3D Geometry' }],
+    'Current Electricity': [{ subject:'Physics', name:'Current Electricity' }],
+    'Coordination Compounds / d & f Block': [
+      { subject:'Chemistry', name:'Coordination Compounds' },
+      { subject:'Chemistry', name:'d & f Block Elements' }
+    ],
+    'General Organic Chemistry (GOC)': [{ subject:'Chemistry', name:'Organic Chemistry — Basic Principles & Techniques' }],
+    'General Organic Chemistry': [{ subject:'Chemistry', name:'Organic Chemistry — Basic Principles & Techniques' }],
+    'Sequence & Series': [{ subject:'Math', name:'Sequence & Series' }],
+    'Electrostatics & Capacitors': [{ subject:'Physics', name:'Electrostatics & Capacitors' }],
+    'Probability & Statistics': [
+      { subject:'Math', name:'Statistics' },
+      { subject:'Math', name:'Probability & Statistics (Advanced)' }
+    ],
+    'Haloalkanes & Haloarenes': [{ subject:'Chemistry', name:'Haloalkanes & Haloarenes' }],
+    'Haloalkanes to Amines': [
+      { subject:'Chemistry', name:'Haloalkanes & Haloarenes' },
+      { subject:'Chemistry', name:'Alcohols, Phenols & Ethers' },
+      { subject:'Chemistry', name:'Aldehydes, Ketones & Carboxylic Acids' },
+      { subject:'Chemistry', name:'Amines' }
+    ],
+    'Coordination Compounds': [{ subject:'Chemistry', name:'Coordination Compounds' }],
+    'Limits, Continuity & Differentiability': [{ subject:'Math', name:'Continuity & Differentiability' }],
+    'Coordinate Geometry (Class 11 Hard) / Laws of Motion': [
+      { subject:'Math', name:'Straight Lines' },
+      { subject:'Math', name:'Conic Sections' },
+      { subject:'Physics', name:'Laws of Motion (NLM + Friction)' }
+    ],
+    'Alcohols, Phenols & Ethers': [{ subject:'Chemistry', name:'Alcohols, Phenols & Ethers' }]
+  };
+
+  function generateGapTimeline(subject, chapterName){
+    return [
+      ['09:00 AM – 01:00 PM', `Self Study — Watch detailed one-shot lecture: ${chapterName} (${subject})`],
+      ['01:00 PM – 03:00 PM', 'Lunch & Mind Decompress'],
+      ['03:00 PM – 07:30 PM', `Online Study & NCERT Line Reading — ${chapterName}`],
+      ['07:30 PM – 08:00 PM', 'Dinner Break'],
+      ['08:00 PM – 11:00 PM', `Question Practice — ${chapterName} (2023–2026 PYQs)`],
+      ['11:00 PM – 01:00 AM', 'Formula/Short-Note Update in Cheat Sheet']
+    ];
+  }
+
+  // Fill any calendar gap (a date with no explicit SCHEDULE_BLOCKS entry) with the next pending
+  // Full-Syllabus chapter that isn't already covered by an explicit block and isn't yet Completed.
+  // This keeps the whole syllabus flowing through the same Calendar/Timeline/Checklist the rest
+  // of the app already uses — no second, disconnected plan.
+  const SYLLABUS_FILLED_DATES = new Set();
+  function buildSyllabusFillPlan(){
+    // Clear any dates this function assigned on a previous run (e.g. after a status change),
+    // so completed chapters free up their day and the remaining ones re-flow correctly.
+    SYLLABUS_FILLED_DATES.forEach(ds => { delete DAILY_SCHEDULE[ds]; });
+    SYLLABUS_FILLED_DATES.clear();
+
+    const coveredByExplicitSchedule = new Set();
+    Object.keys(ALIAS_TO_SYLLABUS).forEach(label => {
+      ALIAS_TO_SYLLABUS[label].forEach(t => coveredByExplicitSchedule.add(t.subject + '::' + t.name));
+    });
+    const pending = [];
+    ['Physics','Chemistry','Math'].forEach(subject => {
+      FULL_SYLLABUS[subject].forEach(ch => {
+        const key = subject + '::' + ch.name;
+        const status = localStorage.getItem(sylKey(subject, ch.name)) || 'Not Started';
+        if (!coveredByExplicitSchedule.has(key) && status !== 'Completed'){
+          pending.push({ subject, name: ch.name, tier: ch.tier });
+        }
+      });
+    });
+    // Round-robin across subjects (so no single subject dominates consecutive gap days),
+    // but within each subject keep chapters sorted easy → medium → hard, so basic/foundational
+    // chapters land in the earliest gap days and harder, related-topic chapters come later.
+    const bySubject = { Physics:[], Chemistry:[], Math:[] };
+    pending.forEach(p => bySubject[p.subject].push(p));
+    Object.keys(bySubject).forEach(s => bySubject[s].sort((a, b) => a.tier - b.tier));
+    const ordered = [];
+    let more = true, i = { Physics:0, Chemistry:0, Math:0 };
+    while (more){
+      more = false;
+      ['Physics','Chemistry','Math'].forEach(s => {
+        if (i[s] < bySubject[s].length){ ordered.push(bySubject[s][i[s]]); i[s]++; more = true; }
+      });
+    }
+
+    // Find gap dates already sitting inside the app's own planning horizon (up to the existing
+    // 2027-01-01 revision-lockdown block, which we never touch).
+    const gapDates = [];
+    let cursor = parseDate(SCHEDULE_BLOCKS[0].start);
+    const horizonEnd = parseDate('2026-12-31');
+    while (cursor <= horizonEnd){
+      const ds = fmtDate(cursor);
+      if (!DAILY_SCHEDULE[ds]) gapDates.push(ds);
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    const assignments = [];
+    gapDates.forEach((ds, idx) => {
+      if (idx < ordered.length){
+        const item = ordered[idx];
+        const block = {
+          start: ds, end: ds, chapter: item.name,
+          syllabusSync: [{ subject:item.subject, name:item.name }],
+          timeline: generateGapTimeline(item.subject, item.name)
+        };
+        DAILY_SCHEDULE[ds] = block;
+        SYLLABUS_FILLED_DATES.add(ds);
+        assignments.push({ date: ds, subject:item.subject, name:item.name });
+      }
+    });
+    const unslotted = ordered.slice(gapDates.length);
+    return { assignments, unslotted, gapDateCount: gapDates.length };
+  }
+
+  function getScheduleFor(dateStr){ return DAILY_SCHEDULE[dateStr] || null; }
+
+  /* ---------------- STATE ---------------- */
+  let today = new Date(); today.setHours(0,0,0,0);
+  let viewMonth = today.getMonth();
+  let viewYear = today.getFullYear();
+  let selectedDate = fmtDate(today);
+  let SYLLABUS_FILL_PLAN = null;
+
+  function fmtDate(d){
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function parseDate(s){
+    const [y,m,d] = s.split('-').map(Number);
+    return new Date(y, m-1, d);
+  }
+
+  /* ---------------- NAV DRAWER ---------------- */
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+  const drawer = document.getElementById('drawer');
+  const overlay = document.getElementById('overlay');
+  function openDrawer(){ drawer.classList.add('open'); overlay.classList.add('open'); }
+  function closeDrawer(){ drawer.classList.remove('open'); overlay.classList.remove('open'); }
+  hamburgerBtn.addEventListener('click', openDrawer);
+  overlay.addEventListener('click', closeDrawer);
+
+  document.querySelectorAll('.drawer-link').forEach(link => {
+    link.addEventListener('click', () => {
+      document.querySelectorAll('.drawer-link').forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(link.dataset.view).classList.add('active');
+      closeDrawer();
+    });
+  });
+  // default view
+  document.querySelector('.drawer-link[data-view="v1"]').classList.add('active');
+  document.getElementById('v1').classList.add('active');
+
+  /* ---------------- CALENDAR ---------------- */
+  const dowNames = ['S','M','T','W','T','F','S'];
+  function renderDow(){
+    document.getElementById('dowRow').innerHTML = dowNames.map(d => `<div class="cal-dow">${d}</div>`).join('');
+  }
+  function renderCalendar(){
+    const grid = document.getElementById('calGrid');
+    const label = document.getElementById('monthLabel');
+    const firstDay = new Date(viewYear, viewMonth, 1);
+    const startOffset = firstDay.getDay();
+    const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
+    label.textContent = firstDay.toLocaleString('default',{month:'long', year:'numeric'});
+
+    let html = '';
+    for (let i=0; i<startOffset; i++) html += `<div class="cal-day empty"></div>`;
+    for (let d=1; d<=daysInMonth; d++){
+      const dateObj = new Date(viewYear, viewMonth, d);
+      const dateStr = fmtDate(dateObj);
+      let cls = 'cal-day';
+      if (dateStr === fmtDate(today)) cls += ' today';
+      if (dateStr === selectedDate) cls += ' selected';
+      let dots = '';
+      const test = TESTS[dateStr];
+      const dayBlock = DAILY_SCHEDULE[dateStr];
+      if (test){
+        const isAits = AITS_DATES.includes(dateStr);
+        dots = `<div class="day-dots"><span class="day-dot ${isAits ? 'dot-aits':'dot-milestone'}"></span></div>`;
+      } else if (dayBlock && dayBlock.syllabusSync){
+        dots = `<div class="day-dots"><span class="day-dot dot-study"></span></div>`;
+      }
+      html += `<div class="${cls}" data-date="${dateStr}">${d}${dots}</div>`;
+    }
+    grid.innerHTML = html;
+    grid.querySelectorAll('.cal-day:not(.empty)').forEach(el => {
+      el.addEventListener('click', () => {
+        selectedDate = el.dataset.date;
+        renderAll();
+      });
+    });
+  }
+  document.getElementById('prevMonth').addEventListener('click', () => {
+    viewMonth--; if (viewMonth<0){viewMonth=11; viewYear--;}
+    renderCalendar();
+  });
+  document.getElementById('nextMonth').addEventListener('click', () => {
+    viewMonth++; if (viewMonth>11){viewMonth=0; viewYear++;}
+    renderCalendar();
+  });
+
+  /* ---------------- TIMELINE (driven by day's exact schedule block) ---------------- */
+  function renderTimeline(){
+    const dObj = parseDate(selectedDate);
+    document.getElementById('tlDateLabel').textContent = dObj.toLocaleDateString('default',{weekday:'short', day:'numeric', month:'short', year:'numeric'});
+    const test = TESTS[selectedDate];
+    const block = getScheduleFor(selectedDate);
+    const body = document.getElementById('timelineBody');
+    const warnBox = document.getElementById('tlWarning');
+    warnBox.innerHTML = '';
+
+    if (!block){
+      body.innerHTML = `<div class="empty-note">No detailed schedule mapped for this date yet.</div>`;
+      return;
+    }
+
+    if (test){
+      body.innerHTML = `<div style="font-size:.72rem;font-weight:700;color:var(--jee);margin-bottom:8px;">${test.name} — ${test.syllabus}</div>` +
+        block.timeline.map(renderTlRow).join('');
+    } else {
+      body.innerHTML = block.timeline.map(renderTlRow).join('');
+    }
+
+    if (block.chapter){
+      body.innerHTML += `<div style="margin-top:8px;font-size:.7rem;color:var(--text-sub);">📘 Today's focus chapter: <b>${block.chapter}</b></div>`;
+    }
+    if (block.syllabusSync){
+      body.innerHTML += `<div style="margin-top:4px;font-size:.68rem;color:var(--text-sub);">🔄 Auto-synced from your Full Syllabus tracker (gap-fill day).</div>`;
+    }
+  }
+  function renderTlRow([time, task, board]){
+    const isWarn = task.indexOf('⚠️') === 0 || task.toLowerCase().includes('strictly by 1:00 pm');
+    return `
+      <div class="tl-item ${board ? 'board':''}">
+        <div class="tl-time">${time}</div>
+        <div class="tl-body">
+          <div class="tl-task">${task}</div>
+        </div>
+      </div>
+    `;
+  }
+
+
+  /* ---------------- BACKLOG PROGRESS TRACKER ---------------- */
+  function backlogKey(name){ return `jee_backlog_status_${name.replace(/\s+/g,'_')}`; }
+  function renderBacklog(){
+    const container = document.getElementById('backlogContainer');
+    container.innerHTML = BACKLOG_CHAPTERS.map((ch, idx) => {
+      const status = localStorage.getItem(backlogKey(ch.name)) || 'Not Started';
+      const pct = STATUS_PCT[status];
+      const barColor = ch.tier === 'green' ? 'var(--board)' : 'var(--yellow)';
+      return `
+        <div class="progress-item">
+          <div class="progress-top">
+            <div class="progress-name">${ch.name}</div>
+            <span class="tier-tag ${ch.tier === 'green' ? 'tier-green':'tier-yellow'}">${ch.tier === 'green' ? 'Easy':'Hard'}</span>
+          </div>
+          <select class="status-select" data-chapter="${ch.name}">
+            ${STATUS_OPTIONS.map(s => `<option value="${s}" ${s===status?'selected':''}>${s}</option>`).join('')}
+          </select>
+          <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${pct}%; background:${barColor};"></div></div>
+        </div>
+      `;
+    }).join('');
+    container.querySelectorAll('.status-select').forEach(sel => {
+      sel.addEventListener('change', () => {
+        localStorage.setItem(backlogKey(sel.dataset.chapter), sel.value);
+        renderBacklog();
+      });
+    });
+  }
+
+  /* ---------------- FULL SYLLABUS TRACKER ---------------- */
+  function sylKey(subject, name){ return `jee_syllabus_status_${subject}_${name.replace(/\s+/g,'_')}`; }
+  const SUBJECT_LIST_ID = { Physics:'sylPhyList', Chemistry:'sylChemList', Math:'sylMathList' };
+  const SUBJECT_BAR_ID = { Physics:'sylPhyBar', Chemistry:'sylChemBar', Math:'sylMathBar' };
+
+  function renderSyllabusSubject(subject){
+    const chapters = FULL_SYLLABUS[subject];
+    const listEl = document.getElementById(SUBJECT_LIST_ID[subject]);
+    let totalPct = 0;
+    listEl.innerHTML = chapters.map(ch => {
+      const status = localStorage.getItem(sylKey(subject, ch.name)) || 'Not Started';
+      const pct = STATUS_PCT[status];
+      totalPct += pct;
+      const tierCls = ch.tier === 1 ? 'tier-green' : (ch.tier === 2 ? 'tier-yellow' : 'tier-hard');
+      const tierLabel = ch.tier === 1 ? 'Easy' : (ch.tier === 2 ? 'Medium' : 'Hard');
+      return `
+        <div class="progress-item">
+          <div class="progress-top">
+            <div class="progress-name">${ch.name}</div>
+            <span class="tier-tag ${tierCls}">Cls ${ch.cls} · ${tierLabel}</span>
+          </div>
+          <select class="status-select syl-status" data-subject="${subject}" data-chapter="${ch.name}">
+            ${STATUS_OPTIONS.map(s => `<option value="${s}" ${s===status?'selected':''}>${s}</option>`).join('')}
+          </select>
+          <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${pct}%; background:var(--jee);"></div></div>
+        </div>
+      `;
+    }).join('');
+    document.getElementById(SUBJECT_BAR_ID[subject]).style.width = Math.round(totalPct / chapters.length) + '%';
+    listEl.querySelectorAll('.syl-status').forEach(sel => {
+      sel.addEventListener('change', () => {
+        localStorage.setItem(sylKey(sel.dataset.subject, sel.dataset.chapter), sel.value);
+        renderAll();
+      });
+    });
+  }
+  function renderAllSyllabus(){
+    Object.keys(FULL_SYLLABUS).forEach(renderSyllabusSubject);
+  }
+  document.querySelectorAll('[data-syltab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-syltab]').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#sylPhy, #sylChem, #sylMath').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.syltab).classList.add('active');
+    });
+  });
+
+  function syllabusStats(){
+    let total = 0, done = 0, notStarted = 0;
+    Object.keys(FULL_SYLLABUS).forEach(subject => {
+      FULL_SYLLABUS[subject].forEach(ch => {
+        total++;
+        const status = localStorage.getItem(sylKey(subject, ch.name)) || 'Not Started';
+        if (status === 'Completed') done++;
+        if (status === 'Not Started') notStarted++;
+      });
+    });
+    return { total, done, notStarted, remaining: total - done };
+  }
+
+  function renderSyllabusSummary(){
+    const box = document.getElementById('syllabusPlanBox');
+    const stats = syllabusStats();
+    const msDay = 1000*60*60*24;
+    const daysToMains = Math.ceil((JEE_MAINS_DATE - today) / msDay);
+    const daysToBoards = Math.ceil((BOARDS_DATE - today) / msDay);
+    box.innerHTML = `
+      <div class="countdown-row">
+        <div class="cd-chip"><span class="cd-num">${stats.done}/${stats.total}</span>Chapters Completed</div>
+        <div class="cd-chip"><span class="cd-num">${stats.remaining}</span>Chapters Remaining</div>
+        <div class="cd-chip"><span class="cd-num">${daysToMains}</span>Days to JEE Mains</div>
+        <div class="cd-chip"><span class="cd-num">${daysToBoards}</span>Days to Boards</div>
+      </div>
+    `;
+  }
+
+  /* ---------------- COVERAGE PLAN — now just displays what was synced into DAILY_SCHEDULE ---------------- */
+  function renderCoveragePlan(){
+    const body = document.getElementById('coveragePlanBody');
+    const plan = SYLLABUS_FILL_PLAN;
+    if (!plan || !plan.assignments.length){
+      body.innerHTML = `<div class="empty-note">Every chapter is either already on your Calendar or marked Completed. Open the Calendar tab — every date's Chapter Checklist now reflects this.</div>`;
+      return;
+    }
+    body.innerHTML = `
+      <div class="sub">✅ Synced directly into your Calendar & Timeline. These ${plan.assignments.length} gap-days (dates that had no coaching-fixed topic) were filled with the next pending syllabus chapters — open Calendar & Timeline for any of these dates and you'll see it as that day's Chapter Checklist.</div>
+      <div class="log-feed">
+        ${plan.assignments.map(a => `
+          <div class="log-row">
+            <div class="log-date">${a.date}</div>
+            ${a.subject}: ${a.name}
+          </div>
+        `).join('')}
+      </div>
+      ${plan.unslotted.length ? `<div class="warn-note">⚠️ ${plan.unslotted.length} chapter(s) still have no free calendar day before the mock-only phase begins: ${plan.unslotted.map(u=>u.name).join(', ')}. These will need to be squeezed into existing "Backlog Clearance" days or into extra hours.</div>` : ''}
+    `;
+  }
+
+
+  /* ---------------- CHAPTER CHECKLIST (contextual) ---------------- */
+  function chapterChkKey(dateStr){ return `jee_chapter_chk_${dateStr}`; }
+  function renderChapterChecklist(){
+    document.getElementById('chkDateLabel').textContent = selectedDate;
+    const test = TESTS[selectedDate];
+    const block = getScheduleFor(selectedDate);
+    const chapter = block ? block.chapter : null;
+    const container = document.getElementById('chapterChecklist');
+    const prompts = chapter ? chapterPrompts(chapter) : [];
+    if (!prompts.length){
+      container.innerHTML = `<div class="empty-note">No scheduled chapter for this date. Use Custom Task Creator below to add your own study goals.</div>`;
+      return;
+    }
+    const chapterLabel = `<div style="font-size:.72rem;color:var(--text-sub);margin-bottom:8px;">📘 ${chapter}${test ? ` · ${test.name}`:''}</div>`;
+    const saved = JSON.parse(localStorage.getItem(chapterChkKey(selectedDate)) || '{}');
+    container.innerHTML = chapterLabel + prompts.map((p, i) => {
+      const done = !!saved[i];
+      return `
+        <div class="chk-item ${done?'done':''}">
+          <input type="checkbox" id="chapChk${i}" data-idx="${i}" ${done?'checked':''}>
+          <label for="chapChk${i}">${p}</label>
+        </div>
+      `;
+    }).join('');
+    container.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const state = JSON.parse(localStorage.getItem(chapterChkKey(selectedDate)) || '{}');
+        state[cb.dataset.idx] = cb.checked;
+        localStorage.setItem(chapterChkKey(selectedDate), JSON.stringify(state));
+        if (cb.checked){
+          logArchive(selectedDate, prompts[cb.dataset.idx]);
+          markStudiedDay(selectedDate);
+          // Sync: if every prompt for this day's chapter is now checked AND this is the
+          // last day this chapter is scheduled on, mark it Completed in the Full Syllabus tracker.
+          const allDone = prompts.every((_, i) => !!state[i]);
+          if (allDone && block && selectedDate === block.end){
+            const targets = block.syllabusSync || ALIAS_TO_SYLLABUS[chapter] || [];
+            targets.forEach(t => localStorage.setItem(sylKey(t.subject, t.name), 'Completed'));
+            if (targets.length){
+              renderAllSyllabus();
+              renderSyllabusSummary();
+            }
+          }
+        }
+        renderChapterChecklist();
+      });
+    });
+  }
+
+  /* ---------------- CUSTOM TASKS (date-locked) ---------------- */
+  function customTaskKey(dateStr){ return `jee_custom_tasks_${dateStr}`; }
+  function loadCustomTasks(dateStr){ return JSON.parse(localStorage.getItem(customTaskKey(dateStr)) || '[]'); }
+  function saveCustomTasks(dateStr, arr){ localStorage.setItem(customTaskKey(dateStr), JSON.stringify(arr)); }
+
+  function renderCustomTasks(){
+    const list = loadCustomTasks(selectedDate);
+    const container = document.getElementById('customTaskList');
+    if (!list.length){
+      container.innerHTML = `<div class="empty-note">No custom tasks for this date yet.</div>`;
+      return;
+    }
+    container.innerHTML = list.map((t, i) => `
+      <div class="chk-item ${t.done?'done':''}">
+        <input type="checkbox" id="custChk${i}" data-idx="${i}" ${t.done?'checked':''}>
+        <label for="custChk${i}">[${t.category}] ${t.text}</label>
+        <button class="chk-del" data-idx="${i}">🗑️</button>
+      </div>
+    `).join('');
+    container.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const arr = loadCustomTasks(selectedDate);
+        arr[cb.dataset.idx].done = cb.checked;
+        saveCustomTasks(selectedDate, arr);
+        if (cb.checked){ logArchive(selectedDate, arr[cb.dataset.idx].text); markStudiedDay(selectedDate); }
+        renderCustomTasks();
+      });
+    });
+    container.querySelectorAll('.chk-del').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const arr = loadCustomTasks(selectedDate);
+        arr.splice(btn.dataset.idx, 1);
+        saveCustomTasks(selectedDate, arr);
+        renderCustomTasks();
+      });
+    });
+  }
+  document.getElementById('addCustomTaskBtn').addEventListener('click', () => {
+    const input = document.getElementById('customTaskInput');
+    const cat = document.getElementById('customTaskCategory').value;
+    const text = input.value.trim();
+    if (!text) return;
+    const arr = loadCustomTasks(selectedDate);
+    arr.push({ text, category:cat, done:false, createdAt:new Date().toISOString() });
+    saveCustomTasks(selectedDate, arr);
+    input.value = '';
+    renderCustomTasks();
+  });
+
+  /* ---------------- BOARD DERIVATION CHECKLIST ---------------- */
+  const DERIV_KEY = 'jee_derivation_checklist';
+  function renderDerivations(){
+    const saved = JSON.parse(localStorage.getItem(DERIV_KEY) || '{}');
+    const container = document.getElementById('derivationChecklist');
+    container.innerHTML = DERIVATIONS.map((d, i) => {
+      const done = !!saved[i];
+      return `
+        <div class="chk-item ${done?'done':''}">
+          <input type="checkbox" id="derivChk${i}" data-idx="${i}" ${done?'checked':''}>
+          <label for="derivChk${i}">${d}</label>
+        </div>
+      `;
+    }).join('');
+    container.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const state = JSON.parse(localStorage.getItem(DERIV_KEY) || '{}');
+        state[cb.dataset.idx] = cb.checked;
+        localStorage.setItem(DERIV_KEY, JSON.stringify(state));
+        if (cb.checked){ logArchive(selectedDate, DERIVATIONS[cb.dataset.idx]); markStudiedDay(selectedDate); }
+        renderDerivations();
+      });
+    });
+  }
+
+  /* ---------------- ACCOMPLISHMENT ARCHIVE ---------------- */
+  const ARCHIVE_KEY = 'jee_archive_log';
+  function logArchive(dateStr, text){
+    const arr = JSON.parse(localStorage.getItem(ARCHIVE_KEY) || '[]');
+    arr.unshift({ date:dateStr, text, loggedAt:new Date().toISOString() });
+    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(arr.slice(0,300)));
+    renderArchive();
+  }
+  function renderArchive(){
+    const arr = JSON.parse(localStorage.getItem(ARCHIVE_KEY) || '[]');
+    const feed = document.getElementById('archiveFeed');
+    const q = (document.getElementById('archiveSearch').value || '').toLowerCase().trim();
+    const filtered = q ? arr.filter(a => a.text.toLowerCase().includes(q) || a.date.includes(q)) : arr;
+    if (!filtered.length){
+      feed.innerHTML = `<div class="empty-note">${q ? 'No matching history entries.' : 'Completed checklist items will appear here.'}</div>`;
+      return;
+    }
+    feed.innerHTML = filtered.map(a => `
+      <div class="log-row"><div class="log-date">${a.date}</div>${a.text}</div>
+    `).join('');
+  }
+  document.getElementById('archiveSearch').addEventListener('input', renderArchive);
+  document.getElementById('clearArchiveBtn').addEventListener('click', () => {
+    if (!confirm('Clear all checklist history? This cannot be undone.')) return;
+    localStorage.removeItem(ARCHIVE_KEY);
+    renderArchive();
+  });
+
+  /* ---------------- STREAK TRACKER ---------------- */
+  const STREAK_KEY = 'jee_studied_days';
+  function markStudiedDay(dateStr){
+    const days = JSON.parse(localStorage.getItem(STREAK_KEY) || '[]');
+    if (!days.includes(dateStr)){
+      days.push(dateStr);
+      localStorage.setItem(STREAK_KEY, JSON.stringify(days));
+    }
+    renderStreaks();
+  }
+  function renderStreaks(){
+    const days = JSON.parse(localStorage.getItem(STREAK_KEY) || '[]').sort();
+    document.getElementById('totalDays').textContent = days.length;
+    let best = 0, current = 0, run = 0;
+    let prev = null;
+    days.forEach(d => {
+      if (prev){
+        const diff = (parseDate(d) - parseDate(prev)) / 86400000;
+        run = diff === 1 ? run + 1 : 1;
+      } else { run = 1; }
+      best = Math.max(best, run);
+      prev = d;
+    });
+    // current streak: consecutive days ending today
+    let cur = 0;
+    let cursor = new Date(today);
+    while (days.includes(fmtDate(cursor))){
+      cur++;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    document.getElementById('currentStreak').textContent = cur;
+    document.getElementById('bestStreak').textContent = best;
+  }
+
+  /* ---------------- EXAM COUNTDOWNS ---------------- */
+  const JEE_MAINS_DATE = new Date('2027-01-24T00:00:00');
+  const BOARDS_DATE = new Date('2027-02-15T00:00:00');
+  function renderCountdowns(){
+    const daysTo = (d) => Math.max(0, Math.ceil((d - today) / 86400000));
+    document.getElementById('cdMains').textContent = daysTo(JEE_MAINS_DATE);
+    document.getElementById('cdBoards').textContent = daysTo(BOARDS_DATE);
+  }
+
+  /* ---------------- SELF-STUDY TIMER ----------------
+     Fully persistent: instead of keeping the "running" state only in JS
+     memory (which is wiped on refresh / app kill), we store a single
+     STATE object in localStorage at all times:
+       { running: bool, startTs: <ms timestamp when current run began> }
+     While running, elapsed time is always computed as (now - startTs) —
+     it never depends on the interval tick or the page staying open, so a
+     refresh, tab close, or the OS killing the app in the background can
+     never lose progress: on reload we just re-read startTs and keep
+     counting from wherever real time says we should be.
+     Every tick we also *bank* the seconds-so-far into that day's total
+     and move startTs forward, so even an ungraceful close (no pause/stop,
+     no beforeunload) loses at most ~1 second of progress, never more. */
+  const STUDY_TIME_KEY_PREFIX = 'jee_study_seconds_'; // per-day totals: jee_study_seconds_YYYY-MM-DD
+  const STUDY_STATE_KEY = 'jee_study_timer_state';    // live running state, survives refresh/close
+  function studyKey(dateStr){ return STUDY_TIME_KEY_PREFIX + dateStr; }
+  function getDailyStudySeconds(dateStr){ return parseInt(localStorage.getItem(studyKey(dateStr)) || '0', 10); }
+  function addDailyStudySeconds(dateStr, secs){
+    if (secs <= 0) return getDailyStudySeconds(dateStr);
+    const total = getDailyStudySeconds(dateStr) + secs;
+    localStorage.setItem(studyKey(dateStr), String(total));
+    return total;
+  }
+  function fmtHMS(totalSeconds){
+    totalSeconds = Math.max(0, Math.floor(totalSeconds));
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+  function loadStudyState(){
+    try { return JSON.parse(localStorage.getItem(STUDY_STATE_KEY) || 'null'); } catch(e){ return null; }
+  }
+  function saveStudyState(state){ localStorage.setItem(STUDY_STATE_KEY, JSON.stringify(state)); }
+
+  let studyRunning = false;
+  let studyStartTs = null;      // timestamp (ms) marking the start of the currently-unbanked segment
+  let studyInterval = null;
+  function todayStrNow(){ return fmtDate(new Date()); }
+
+  // Bank whatever time has elapsed since studyStartTs into the correct day's
+  // total (splitting across midnight if a session happens to cross it),
+  // then move studyStartTs to "now" so nothing is ever double counted.
+  function bankElapsed(){
+    if (!studyRunning || !studyStartTs) return;
+    let cursor = studyStartTs;
+    const now = Date.now();
+    while (cursor < now){
+      const cursorDate = new Date(cursor);
+      const dateStr = fmtDate(cursorDate);
+      const midnight = new Date(cursorDate.getFullYear(), cursorDate.getMonth(), cursorDate.getDate() + 1).getTime();
+      const segmentEnd = Math.min(now, midnight);
+      const secs = Math.floor((segmentEnd - cursor) / 1000);
+      if (secs > 0){
+        addDailyStudySeconds(dateStr, secs);
+        markStudiedDay(dateStr);
+      }
+      cursor = segmentEnd;
+    }
+    studyStartTs = now;
+    if (studyRunning) saveStudyState({ running: true, startTs: studyStartTs });
+  }
+
+  function renderStudyTimer(){
+    const liveExtra = studyRunning ? Math.floor((Date.now() - studyStartTs) / 1000) : 0;
+    document.getElementById('studyTimerDisplay').textContent = fmtHMS(liveExtra);
+    document.getElementById('studyTodayTotal').textContent = fmtHMS(getDailyStudySeconds(todayStrNow()) + liveExtra);
+    document.getElementById('studyRunningNote').classList.toggle('hidden', !studyRunning);
+  }
+
+  function tick(){
+    bankElapsed();       // save real progress to storage every second
+    renderStudyTimer();
+    renderStreaks();
+    renderStudyHistory();
+  }
+
+  function startStudyInterval(){
+    if (studyInterval) clearInterval(studyInterval);
+    studyInterval = setInterval(tick, 1000);
+  }
+
+  document.getElementById('studyStartBtn').addEventListener('click', () => {
+    if (studyRunning) return;
+    studyRunning = true;
+    studyStartTs = Date.now();
+    saveStudyState({ running: true, startTs: studyStartTs });
+    startStudyInterval();
+    renderStudyTimer();
+  });
+
+  document.getElementById('studyPauseBtn').addEventListener('click', () => {
+    if (!studyRunning) return;
+    bankElapsed();
+    studyRunning = false;
+    clearInterval(studyInterval);
+    saveStudyState({ running: false, startTs: null });
+    renderStudyTimer();
+    renderStudyHistory();
+  });
+
+  document.getElementById('studyStopBtn').addEventListener('click', () => {
+    if (studyRunning) bankElapsed();
+    studyRunning = false;
+    clearInterval(studyInterval);
+    saveStudyState({ running: false, startTs: null });
+    renderStudyTimer();
+    renderStudyHistory();
+  });
+
+  // Restore timer on every load/refresh: if it was running when the app
+  // was last closed/refreshed, resume counting from the saved startTs —
+  // real elapsed time is preserved exactly, and it keeps running as if
+  // the app never closed, until the user taps Stop (or Pause).
+  function restoreStudyTimer(){
+    const state = loadStudyState();
+    if (state && state.running && state.startTs){
+      studyRunning = true;
+      studyStartTs = state.startTs;
+      bankElapsed();       // catch up on any time missed while app was closed
+      startStudyInterval();
+    } else {
+      studyRunning = false;
+      studyStartTs = null;
+    }
+    renderStudyTimer();
+  }
+
+  // Extra safety net: also bank on unload/hide events where possible
+  // (not required for correctness since bankElapsed() runs every second
+  // and on load, but this shaves the worst case down further).
+  window.addEventListener('beforeunload', bankElapsed);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') bankElapsed();
+    else if (document.visibilityState === 'visible') restoreStudyTimer();
+  });
+
+  /* ---------------- DAILY STUDY HISTORY (date-wise) ---------------- */
+  function getAllStudyHistory(){
+    const rows = [];
+    for (let i=0; i<localStorage.length; i++){
+      const key = localStorage.key(i);
+      if (key.startsWith(STUDY_TIME_KEY_PREFIX)){
+        const dateStr = key.slice(STUDY_TIME_KEY_PREFIX.length);
+        const secs = parseInt(localStorage.getItem(key) || '0', 10);
+        if (secs > 0) rows.push({ dateStr, secs });
+      }
+    }
+    rows.sort((a,b) => b.dateStr.localeCompare(a.dateStr));
+    return rows;
+  }
+  function renderStudyHistory(){
+    const feed = document.getElementById('studyHistoryFeed');
+    if (!feed) return;
+    const rows = getAllStudyHistory();
+    if (!rows.length){
+      feed.innerHTML = `<div class="empty-note">No study time logged yet. Hit Start above to begin.</div>`;
+      return;
+    }
+    feed.innerHTML = rows.map(r => `
+      <div class="log-row"><div class="log-date">${r.dateStr}</div>${fmtHMS(r.secs)} studied</div>
+    `).join('');
+  }
+
+  /* ---------------- POMODORO FOCUS TIMER ---------------- */
+  let pomoMinutes = 25;
+  let pomoSecondsLeft = pomoMinutes * 60;
+  let pomoRunning = false;
+  let pomoInterval = null;
+  const POMO_SESSIONS_KEY = 'jee_pomo_sessions';
+
+  function renderPomoTime(){
+    const m = Math.floor(pomoSecondsLeft / 60);
+    const s = pomoSecondsLeft % 60;
+    document.getElementById('pomoTime').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+  function renderPomoSessions(){
+    const count = parseInt(localStorage.getItem(POMO_SESSIONS_KEY) || '0', 10);
+    document.getElementById('pomoSessionsNote').textContent = `Focus sessions completed: ${count}`;
+  }
+  document.querySelectorAll('.pomo-select .tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (pomoRunning) return;
+      document.querySelectorAll('.pomo-select .tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      pomoMinutes = parseInt(btn.dataset.mins, 10);
+      pomoSecondsLeft = pomoMinutes * 60;
+      renderPomoTime();
+    });
+  });
+  document.getElementById('pomoStartBtn').addEventListener('click', () => {
+    const btn = document.getElementById('pomoStartBtn');
+    if (pomoRunning){
+      pomoRunning = false;
+      clearInterval(pomoInterval);
+      btn.textContent = 'Start';
+      return;
+    }
+    pomoRunning = true;
+    btn.textContent = 'Pause';
+    pomoInterval = setInterval(() => {
+      pomoSecondsLeft--;
+      if (pomoSecondsLeft <= 0){
+        clearInterval(pomoInterval);
+        pomoRunning = false;
+        btn.textContent = 'Start';
+        const count = parseInt(localStorage.getItem(POMO_SESSIONS_KEY) || '0', 10) + 1;
+        localStorage.setItem(POMO_SESSIONS_KEY, String(count));
+        renderPomoSessions();
+        pomoSecondsLeft = pomoMinutes * 60;
+        markStudiedDay(fmtDate(today));
+      }
+      renderPomoTime();
+    }, 1000);
+  });
+  document.getElementById('pomoResetBtn').addEventListener('click', () => {
+    pomoRunning = false;
+    clearInterval(pomoInterval);
+    document.getElementById('pomoStartBtn').textContent = 'Start';
+    pomoSecondsLeft = pomoMinutes * 60;
+    renderPomoTime();
+  });
+
+  /* ---------------- BACKUP / RESTORE ---------------- */
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    const backup = {};
+    for (let i=0; i<localStorage.length; i++){
+      const key = localStorage.key(i);
+      if (key.startsWith('jee_')) backup[key] = localStorage.getItem(key);
+    }
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `jee_tracker_backup_${fmtDate(today)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+  document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
+  document.getElementById('importFile').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try{
+        const data = JSON.parse(reader.result);
+        Object.keys(data).forEach(k => { if (k.startsWith('jee_')) localStorage.setItem(k, data[k]); });
+        location.reload();
+      }catch(err){ alert('Invalid backup file.'); }
+    };
+    reader.readAsText(file);
+  });
+  document.getElementById('clearAllBtn').addEventListener('click', () => {
+    if (!confirm('This will permanently delete all locally stored study data. Continue?')) return;
+    Object.keys(localStorage).forEach(k => { if (k.startsWith('jee_')) localStorage.removeItem(k); });
+    location.reload();
+  });
+
+  /* ---------------- PYQ SPEED COUNTER ---------------- */
+  const PYQ_KEY = 'jee_pyq_speed_totals';
+  function loadPyqTotals(){ return JSON.parse(localStorage.getItem(PYQ_KEY) || '{"physics":0,"chemistry":0,"math":0}'); }
+  function renderPyqTotals(){
+    const t = loadPyqTotals();
+    document.getElementById('pyqPhyTotal').textContent = t.physics;
+    document.getElementById('pyqChemTotal').textContent = t.chemistry;
+    document.getElementById('pyqMathTotal').textContent = t.math;
+    document.getElementById('pyqGrandTotal').textContent = t.physics + t.chemistry + t.math;
+  }
+  document.getElementById('logPyqBtn').addEventListener('click', () => {
+    const phy = parseInt(document.getElementById('pyqPhy').value, 10) || 0;
+    const chem = parseInt(document.getElementById('pyqChem').value, 10) || 0;
+    const math = parseInt(document.getElementById('pyqMath').value, 10) || 0;
+    if (phy + chem + math === 0) return;
+    const t = loadPyqTotals();
+    t.physics += phy; t.chemistry += chem; t.math += math;
+    localStorage.setItem(PYQ_KEY, JSON.stringify(t));
+    document.getElementById('pyqPhy').value = '';
+    document.getElementById('pyqChem').value = '';
+    document.getElementById('pyqMath').value = '';
+    renderPyqTotals();
+  });
+
+  /* ---------------- PERFORMANCE ANALYTICS (Section 3) ---------------- */
+  function analyticsKey(dateStr){ return `jee_test_log_${dateStr}`; }
+  function renderAnalytics(){
+    const dObj = parseDate(selectedDate);
+    const isSunday = dObj.getDay() === 0;
+    const test = TESTS[selectedDate];
+    const noCard = document.getElementById('noTestCard');
+    const formCard = document.getElementById('testFormCard');
+
+    if (!(isSunday && test)){
+      noCard.classList.remove('hidden');
+      formCard.classList.add('hidden');
+      return;
+    }
+    noCard.classList.add('hidden');
+    formCard.classList.remove('hidden');
+    document.getElementById('testFormTitle').textContent = `📊 ${test.name} — ${test.syllabus}`;
+
+    const saved = JSON.parse(localStorage.getItem(analyticsKey(selectedDate)) || 'null');
+    document.getElementById('scorePhy').value = saved ? saved.physics : '';
+    document.getElementById('scoreChem').value = saved ? saved.chemistry : '';
+    document.getElementById('scoreMath').value = saved ? saved.math : '';
+    document.getElementById('sillySlips').value = saved ? saved.silly : '';
+    document.getElementById('blindspots').value = saved ? saved.blindspots : '';
+
+    const note = document.getElementById('lastSavedNote');
+    note.textContent = saved && saved.savedAt ? `Last saved: ${new Date(saved.savedAt).toLocaleString()}` : '';
+  }
+  document.getElementById('saveScoreBtn').addEventListener('click', () => {
+    const data = {
+      physics: document.getElementById('scorePhy').value,
+      chemistry: document.getElementById('scoreChem').value,
+      math: document.getElementById('scoreMath').value,
+      silly: document.getElementById('sillySlips').value,
+      blindspots: document.getElementById('blindspots').value,
+      savedAt: new Date().toISOString()
+    };
+    localStorage.setItem(analyticsKey(selectedDate), JSON.stringify(data));
+    renderAnalytics();
+    renderTrend();
+  });
+
+  function renderTrend(){
+    const rows = Object.keys(TESTS).sort().map(dateStr => {
+      const raw = localStorage.getItem(analyticsKey(dateStr));
+      if (!raw) return null;
+      const log = JSON.parse(raw);
+      const total = [log.physics, log.chemistry, log.math].map(v => parseFloat(v)).filter(v => !isNaN(v)).reduce((a,b)=>a+b,0);
+      return { dateStr, test: TESTS[dateStr], log, total };
+    }).filter(Boolean);
+
+    const container = document.getElementById('trendContainer');
+    if (!rows.length){
+      container.innerHTML = `<div class="empty-note">No test scores logged yet.</div>`;
+      return;
+    }
+    container.innerHTML = `
+      <table class="trend-table">
+        <thead><tr><th>Test</th><th>Phy</th><th>Chem</th><th>Math</th><th>Total</th></tr></thead>
+        <tbody>
+          ${rows.map(r => `<tr><td>${r.test.name}</td><td>${r.log.physics||'-'}</td><td>${r.log.chemistry||'-'}</td><td>${r.log.math||'-'}</td><td><b>${r.total}</b>/300</td></tr>`).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  /* ---------------- CHEAT SHEET TABS ---------------- */
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  /* ---------------- MASTER RENDER ---------------- */
+  function renderAll(){
+    SYLLABUS_FILL_PLAN = buildSyllabusFillPlan();
+    renderCalendar();
+    renderTimeline();
+    renderBacklog();
+    renderChapterChecklist();
+    renderCustomTasks();
+    renderDerivations();
+    renderArchive();
+    renderPyqTotals();
+    renderAnalytics();
+    renderTrend();
+    renderStreaks();
+    renderAllSyllabus();
+    renderSyllabusSummary();
+    renderCoveragePlan();
+    renderStudyHistory();
+  }
+
+  /* ---------------- INIT ---------------- */
+  renderDow();
+  renderAll();
+  renderCountdowns();
+  restoreStudyTimer();
+  renderPomoTime();
+  renderPomoSessions();
+  document.querySelector('.pomo-select .tab-btn[data-mins="25"]').classList.add('active');
+
+})();
+</script>
+</body>
+</html>
